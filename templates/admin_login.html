@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Coastal Alert | Admin Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="login-container">
+    <div class="brand-logo">
+        <span>🌊 Admin Portal</span>
+    </div>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="alert-banner">{{ messages[0] }}</div>
+      {% endif %}
+    {% endwith %}
+
+    <form action="/login" method="post">
+        <input type="text" name="username" placeholder="Username" required>
+        <input type="password" name="password" placeholder="Password" required>
+        <button type="submit" class="btn-primary">LOGIN</button>
+    </form>
+
+    <a href="{{ url_for('index') }}" class="btn-secondary">← Back to Home</a>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentinel AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="container">
+    <div class="brand-logo">
+        <span>🛡️ Sentinel AI</span>
+    </div>
+
+    <div class="alert-banner">
+        ⚠️ Sentinel AI ACTIVE - Protecting Communities
+    </div>
+
+    <h1>Report a Hazard</h1>
+    <p style="color: #8892b0;">Enter your number to receive an automated call.</p>
+
+    <input type="text" id="phone" placeholder="+919876543210" value="+91">
+    <button class="btn-primary" onclick="makeCall()">REPORT NOW</button>
+
+    <div id="status" style="margin-top: 20px; height: 20px;"></div>
+
+    <a href="{{ url_for('admin_login') }}" class="btn-secondary">Admin: Check Reports</a>
+</div>
+
+<script>
+    async function makeCall() {
+        const phone = document.getElementById('phone').value;
+        const status = document.getElementById('status');
+
+        if(phone.length < 12) {
+            status.innerText = "Please enter a valid +91 number";
+            status.style.color = "#f44336";
+            return;
+        }
+
+        status.innerText = "Initiating Call...";
+        status.style.color = "#64ffda";
+
+        try {
+            const response = await fetch('/initiate_call', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `phone_number=${encodeURIComponent(phone)}`
+            });
+            const data = await response.json();
+
+            if(data.status === "success") {
+                status.innerText = "Call Initiated! You will receive it shortly.";
+            } else {
+                status.innerText = "Error: " + data.message;
+                status.style.color = "#f44336";
+            }
+        } catch (error) {
+            status.innerText = "System Error.";
+            status.style.color = "#f44336";
+        }
+    }
+</script>
+
+</body>
+</html>

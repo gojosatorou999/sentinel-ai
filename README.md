@@ -1,1 +1,1 @@
-Full SentinelAI working code + structure!
+Full SentinelAI working code!!

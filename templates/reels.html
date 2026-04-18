@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block head_extra %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/image-fix.css') }}">
 <style>
     .reels-container {
         max-width: 600px;
@@ -92,7 +93,12 @@
         border-radius: 16px;
         margin: 15px 0;
         max-height: 400px;
+        min-height: 200px;
         object-fit: cover;
+        display: block;
+        visibility: visible;
+        opacity: 1;
+        background-color: rgba(0, 0, 0, 0.1);
     }
 
     .reel-description {
@@ -459,12 +465,16 @@
 
         <!-- Media Content -->
         {% if report.video_file %}
-        <video class="reel-media" controls>
+        <video class="reel-media" controls
+            onloadeddata="console.log('Video loaded:', this.querySelector('source').src);"
+            onerror="console.error('Video failed:', this.querySelector('source').src);">
             <source src="{{ url_for('uploaded_file', filename=report.video_file) }}" type="video/mp4">
             Your browser does not support the video tag.
         </video>
         {% elif report.image_file %}
-        <img class="reel-media" src="{{ url_for('uploaded_file', filename=report.image_file) }}" alt="Report image">
+        <img class="reel-media" src="{{ url_for('uploaded_file', filename=report.image_file) }}" alt="Report image"
+            onload="console.log('Image loaded:', this.src);"
+            onerror="this.style.border='3px solid red'; console.error('Image failed to load:', this.src);">
         {% else %}
         <div class="reel-media"
             style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; justify-content: center; align-items: center; color: white;">
@@ -506,6 +516,19 @@
             </button>
         </div>
 
+        <!-- Assigned Volunteers Section -->
+        <div class="volunteers-section mt-3">
+            <div class="volunteers-info" id="volunteers-info-{{ report.id }}" style="display: none;">
+                <small class="text-muted d-block mb-2">
+                    <i class="fas fa-hands-helping me-1 text-success"></i>
+                    <span id="volunteer-count-{{ report.id }}">0</span> volunteers assigned
+                </small>
+                <div id="volunteer-badges-{{ report.id }}" class="d-flex flex-wrap gap-1">
+                    <!-- Volunteer avatars will be loaded here -->
+                </div>
+            </div>
+        </div>
+
         <!-- Comments Section -->
         <div class="comments-section" id="comments-{{ report.id }}-section">
             <div class="comment-form">
@@ -527,6 +550,9 @@
 {% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        // Load volunteer counts for reports
+        loadVolunteerCounts();
+
         // Community Approval functionality
         document.querySelectorAll('.local-approve-btn').forEach(btn => {
             btn.addEventListener('click', async function () {
@@ -805,6 +831,51 @@
 
             return commentDiv;
         }
+
+        // Function to load volunteer counts
+        async function loadVolunteerCounts() {
+            const reportElements = document.querySelectorAll('.reel-item');
+
+            for (const element of reportElements) {
+                const reportId = element.id.replace('reel-', '');
+                try {
+                    // Call new endpoint with 'report' hazard_type
+                    const response = await fetch(`/api/coordination/hazard/report/${reportId}/volunteers-count`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        const volunteerCount = data.total_volunteers || 0;
+
+                        if (volunteerCount > 0) {
+                            const volunteersInfo = document.getElementById(`volunteers-info-${reportId}`);
+                            const volunteerCountSpan = document.getElementById(`volunteer-count-${reportId}`);
+                            const volunteerBadges = document.getElementById(`volunteer-badges-${reportId}`);
+
+                            if (volunteersInfo) {
+                                volunteersInfo.style.display = 'block';
+                                volunteerCountSpan.textContent = volunteerCount;
+
+                                // Add volunteer avatars/badges
+                                if (data.volunteers && data.volunteers.length > 0) {
+                                    volunteerBadges.innerHTML = '';
+                                    data.volunteers.forEach(vol => {
+                                        const badge = document.createElement('span');
+                                        badge.className = 'badge bg-success';
+                                        badge.title = vol.name;
+                                        badge.innerHTML = `<i class="fas fa-check me-1"></i>${vol.name}`;
+                                        volunteerBadges.appendChild(badge);
+                                    });
+                                }
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.log(`Could not load volunteer data for report ${reportId}`);
+                }
+            }
+        }
+
+        // Refresh volunteer counts every 15 seconds for real-time updates
+        setInterval(loadVolunteerCounts, 15000);
 
         // Helper function to escape HTML
         function escapeHtml(text) {

@@ -14,10 +14,10 @@ followers = db.Table('followers',
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(20), unique=True, nullable=False)
+    username = db.Column(db.String(50), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password = db.Column(db.String(60), nullable=False)
-    role = db.Column(db.String(20), default='citizen')
+    password = db.Column(db.String(255), nullable=False)
+    role = db.Column(db.String(50), default='citizen')
     profile_image = db.Column(db.String(100), nullable=True)
     bio = db.Column(db.Text, nullable=True)
     points = db.Column(db.Integer, default=0)
@@ -25,6 +25,8 @@ class User(db.Model, UserMixin):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     push_token = db.Column(db.String(255), nullable=True)
     language = db.Column(db.String(10), default='en')
+    whatsapp_number = db.Column(db.String(20), nullable=True, unique=True)
+    whatsapp_session = db.Column(db.Text, nullable=True) # Used for multi-step WhatsApp login/interactions
     
     # Location fields for alert system
     home_latitude = db.Column(db.Float, nullable=True)
@@ -302,7 +304,7 @@ class Like(db.Model):
     
     # Define relationships
     user = db.relationship('User', backref='likes', foreign_keys=[user_id])
-    report = db.relationship('Report', backref='likes', foreign_keys=[report_id])
+    report = db.relationship('Report', backref=db.backref('likes', cascade='all, delete-orphan'), foreign_keys=[report_id])
     
     def to_dict(self):
         """Convert like object to dictionary for JSON serialization"""
@@ -329,7 +331,7 @@ class LocalApproval(db.Model):
     
     # Define relationships
     user = db.relationship('User', backref='local_approvals', foreign_keys=[user_id])
-    report = db.relationship('Report', backref='local_approvals_list', foreign_keys=[report_id])
+    report = db.relationship('Report', backref=db.backref('local_approvals_list', cascade='all, delete-orphan'), foreign_keys=[report_id])
     
     def to_dict(self):
         return {
@@ -355,7 +357,7 @@ class ReportView(db.Model):
     
     # Define relationships
     user = db.relationship('User', backref='report_views', foreign_keys=[user_id])
-    report = db.relationship('Report', backref='report_views_list', foreign_keys=[report_id])
+    report = db.relationship('Report', backref=db.backref('report_views_list', cascade='all, delete-orphan'), foreign_keys=[report_id])
     
     def to_dict(self):
         return {
@@ -377,7 +379,7 @@ class Comment(db.Model):
     
     # Define relationships
     user = db.relationship('User', backref='comments', foreign_keys=[user_id])
-    report = db.relationship('Report', backref='comments', foreign_keys=[report_id])
+    report = db.relationship('Report', backref=db.backref('comments', cascade='all, delete-orphan'), foreign_keys=[report_id])
     
     def to_dict(self):
         """Convert comment object to dictionary for JSON serialization"""
@@ -418,6 +420,7 @@ class Notification(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     message = db.Column(db.Text, nullable=False)
     report_id = db.Column(db.Integer, db.ForeignKey('report.id'), nullable=True)
+    assignment_id = db.Column(db.Integer, db.ForeignKey('volunteer_assignments.id'), nullable=True)
     is_read = db.Column(db.Boolean, default=False)
     is_alert = db.Column(db.Boolean, default=False)  # New field to distinguish hazard alerts
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -425,7 +428,8 @@ class Notification(db.Model):
     
     # Define relationships
     user = db.relationship('User', backref='notifications', foreign_keys=[user_id])
-    report = db.relationship('Report', backref='notifications', foreign_keys=[report_id])
+    report = db.relationship('Report', backref=db.backref('notifications', cascade='all, delete-orphan'), foreign_keys=[report_id])
+    assignment = db.relationship('VolunteerAssignment', backref='notifications', foreign_keys=[assignment_id])
     
     def to_dict(self):
         return {
@@ -433,6 +437,7 @@ class Notification(db.Model):
             'user_id': self.user_id,
             'message': self.message,
             'report_id': self.report_id,
+            'assignment_id': self.assignment_id,
             'is_read': self.is_read,
             'is_alert': self.is_alert,
             'created_at': self.created_at.isoformat(),
@@ -565,6 +570,8 @@ class Volunteer(db.Model):
     latitude = db.Column(db.Float)
     longitude = db.Column(db.Float)
     is_verified = db.Column(db.Boolean, default=False)
+    points = db.Column(db.Integer, default=0)  # Points earned from completed rescues
+    total_rescues = db.Column(db.Integer, default=0)  # Total completed rescues
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Define relationship
@@ -584,6 +591,8 @@ class Volunteer(db.Model):
             'latitude': self.latitude,
             'longitude': self.longitude,
             'is_verified': self.is_verified,
+            'points': self.points,
+            'total_rescues': self.total_rescues,
             'created_at': self.created_at.isoformat()
         }
     
@@ -595,11 +604,17 @@ class VolunteerAssignment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     volunteer_id = db.Column(db.Integer, db.ForeignKey('volunteers.id'))
     emergency_event_id = db.Column(db.Integer, db.ForeignKey('emergency_events.id'))
+    hazard_type = db.Column(db.String(20), default='emergency')  # emergency or report
     role = db.Column(db.String(100))
-    status = db.Column(db.String(20), default='assigned')  # assigned, deployed, completed, cancelled
+    status = db.Column(db.String(20), default='pending')  # pending, accepted, deployed, completed, declined, cancelled
     assigned_by = db.Column(db.Integer, db.ForeignKey('user.id'))
     assigned_at = db.Column(db.DateTime, default=datetime.utcnow)
+    accepted_at = db.Column(db.DateTime)
     completed_at = db.Column(db.DateTime)
+    distance_km = db.Column(db.Float)  # Distance from volunteer to hazard in km
+    completion_photo = db.Column(db.String(500))  # Photo path/URL of completed rescue
+    completion_notes = db.Column(db.Text)  # Notes from volunteer about the rescue
+    points_earned = db.Column(db.Integer, default=0)  # Points awarded for this completion
     
     # Define relationships
     assigner = db.relationship('User', backref='created_assignments', foreign_keys=[assigned_by])
@@ -610,13 +625,19 @@ class VolunteerAssignment(db.Model):
             'volunteer_id': self.volunteer_id,
             'volunteer_username': self.volunteer.user.username if self.volunteer and self.volunteer.user else 'Unknown',
             'emergency_event_id': self.emergency_event_id,
-            'event_title': self.event.title if self.event else 'Unknown',
+            'hazard_type': getattr(self, 'hazard_type', 'emergency'),
+            'event_title': (self.event.title if getattr(self, 'hazard_type', 'emergency') == 'emergency' and self.event else ('Unknown Report' if getattr(self, 'hazard_type', 'emergency') == 'report' else 'Unknown')),
             'role': self.role,
             'status': self.status,
             'assigned_by': self.assigned_by,
             'assigner_username': self.assigner.username if self.assigner else 'Unknown',
             'assigned_at': self.assigned_at.isoformat(),
-            'completed_at': self.completed_at.isoformat() if self.completed_at else None
+            'accepted_at': self.accepted_at.isoformat() if self.accepted_at else None,
+            'completed_at': self.completed_at.isoformat() if self.completed_at else None,
+            'distance_km': self.distance_km,
+            'completion_photo': self.completion_photo,
+            'completion_notes': self.completion_notes,
+            'points_earned': self.points_earned
         }
     
     def __repr__(self):
@@ -676,3 +697,182 @@ class UserBadge(db.Model):
     
     def __repr__(self):
         return f"UserBadge('{self.user_id}', '{self.badge_id}')"
+
+# =============================================================================
+# URBAN RESILIENCE INDEX (URI) MODELS
+# =============================================================================
+
+class ResilienceZone(db.Model):
+    """Defines geographic zones for resilience tracking"""
+    __tablename__ = 'resilience_zones'
+    id = db.Column(db.Integer, primary_key=True)
+    zone_identifier = db.Column(db.String(100), unique=True, nullable=False)  # e.g., "grid_17.5_78.5"
+    zone_type = db.Column(db.String(50), default='grid')  # grid, ward, city, coastal_segment
+    center_latitude = db.Column(db.Float, nullable=False)
+    center_longitude = db.Column(db.Float, nullable=False)
+    bounds_geojson = db.Column(db.Text, nullable=True)  # JSON polygon coordinates
+    display_name = db.Column(db.String(200), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationship to scores
+    scores = db.relationship('ResilienceScore', backref='zone', lazy=True, cascade='all, delete-orphan')
+    
+    def to_dict(self):
+        """Convert zone object to dictionary for JSON serialization"""
+        latest_score = ResilienceScore.query.filter_by(
+            zone_id=self.id,
+            calculation_period='30d'
+        ).order_by(ResilienceScore.calculated_at.desc()).first()
+        
+        return {
+            'id': self.id,
+            'zone_identifier': self.zone_identifier,
+            'zone_type': self.zone_type,
+            'center_latitude': self.center_latitude,
+            'center_longitude': self.center_longitude,
+            'display_name': self.display_name,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'latest_score': latest_score.score if latest_score else None,
+            'trend': latest_score.trend if latest_score else 'stable',
+            'metrics': json.loads(latest_score.metrics_json) if latest_score and latest_score.metrics_json else {}
+        }
+    
+    def __repr__(self):
+        return f"ResilienceZone('{self.zone_identifier}', '{self.display_name}')"
+
+class ResilienceScore(db.Model):
+    """Stores historical URI scores for each zone"""
+    __tablename__ = 'resilience_scores'
+    id = db.Column(db.Integer, primary_key=True)
+    zone_id = db.Column(db.Integer, db.ForeignKey('resilience_zones.id'), nullable=False)
+    score = db.Column(db.Float, nullable=False)  # 0-100
+    trend = db.Column(db.String(20), default='stable')  # improving, stable, declining
+    calculation_period = db.Column(db.String(20), default='30d')  # 30d, 90d
+    calculated_at = db.Column(db.DateTime, default=datetime.utcnow)
+    metrics_json = db.Column(db.Text, nullable=True)  # JSON breakdown of contributing factors
+    
+    def to_dict(self):
+        """Convert score object to dictionary for JSON serialization"""
+        return {
+            'id': self.id,
+            'zone_id': self.zone_id,
+            'score': self.score,
+            'trend': self.trend,
+            'calculation_period': self.calculation_period,
+            'calculated_at': self.calculated_at.isoformat() if self.calculated_at else None,
+            'metrics': json.loads(self.metrics_json) if self.metrics_json else {}
+        }
+    
+    def __repr__(self):
+        return f"ResilienceScore(zone={self.zone_id}, score={self.score:.1f}, period={self.calculation_period})"
+# =============================================================================
+# COMMUNITY ACTION HUB MODELS
+# =============================================================================
+
+class CommunityEvent(db.Model):
+    __tablename__ = 'community_events'
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    event_type = db.Column(db.String(50), nullable=False)  # disaster_prep, environment, social
+    location = db.Column(db.String(200), nullable=False)
+    latitude = db.Column(db.Float, nullable=True)
+    longitude = db.Column(db.Float, nullable=True)
+    date_time = db.Column(db.DateTime, nullable=False)
+    organizer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    status = db.Column(db.String(20), default='upcoming')  # upcoming, completed, cancelled
+    image_file = db.Column(db.String(100), nullable=True) # Optional event image
+    
+    # Relationships
+    organizer = db.relationship('User', backref='organized_events', foreign_keys=[organizer_id])
+    participants = db.relationship('EventParticipant', backref='event', lazy='dynamic', cascade='all, delete-orphan')
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'description': self.description,
+            'event_type': self.event_type,
+            'location': self.location,
+            'date_time': self.date_time.isoformat(),
+            'organizer': self.organizer.username,
+            'status': self.status,
+            'participant_count': self.participants.count(),
+            'image_file': self.image_file
+        }
+
+class EventParticipant(db.Model):
+    __tablename__ = 'event_participants'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    event_id = db.Column(db.Integer, db.ForeignKey('community_events.id'), nullable=False)
+    joined_at = db.Column(db.DateTime, default=datetime.utcnow)
+    status = db.Column(db.String(20), default='registered')  # registered, attended
+    
+    user = db.relationship('User', backref='events_joined')
+
+# =============================================================================
+# LIFELINE: P2P RESOURCE MARKETPLACE MODELS
+# =============================================================================
+
+class ResourceListing(db.Model):
+    __tablename__ = 'resource_listings'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    listing_type = db.Column(db.String(20), nullable=False)  # 'have' (donor) or 'need' (requester)
+    category = db.Column(db.String(50), nullable=False)  # medical, food, water, shelter, gear, transport
+    title = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    quantity = db.Column(db.String(50), nullable=True)
+    location = db.Column(db.String(200), nullable=False)
+    latitude = db.Column(db.Float, nullable=False)
+    longitude = db.Column(db.Float, nullable=False)
+    status = db.Column(db.String(20), default='open')  # open, matched, completed, cancelled
+    urgent = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    user = db.relationship('User', backref=db.backref('resource_listings', lazy=True))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'username': self.user.username if self.user else 'Unknown',
+            'listing_type': self.listing_type,
+            'category': self.category,
+            'title': self.title,
+            'description': self.description,
+            'quantity': self.quantity,
+            'location': self.location,
+            'latitude': self.latitude,
+            'longitude': self.longitude,
+            'status': self.status,
+            'urgent': self.urgent,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+class ResourceMatch(db.Model):
+    __tablename__ = 'resource_matches'
+    id = db.Column(db.Integer, primary_key=True)
+    need_id = db.Column(db.Integer, db.ForeignKey('resource_listings.id'), nullable=False)
+    have_id = db.Column(db.Integer, db.ForeignKey('resource_listings.id'), nullable=False)
+    status = db.Column(db.String(20), default='pending')  # pending, accepted, rejected, completed
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    need_listing = db.relationship('ResourceListing', foreign_keys=[need_id], backref=db.backref('matches_as_need', lazy=True))
+    have_listing = db.relationship('ResourceListing', foreign_keys=[have_id], backref=db.backref('matches_as_have', lazy=True))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'need_id': self.need_id,
+            'have_id': self.have_id,
+            'status': self.status,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'need_title': self.need_listing.title,
+            'have_title': self.have_listing.title,
+            'requester': self.need_listing.user.username,
+            'donor': self.have_listing.user.username
+        }

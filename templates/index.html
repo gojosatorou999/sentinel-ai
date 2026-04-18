@@ -632,15 +632,15 @@
     <!-- Hero Section with Enhanced Styling -->
     <section class="hero-section">
         <div class="text-center">
-            <h1 class="hero-title">🌊 {{ translate('coastal_safety_network') }}</h1>
-            <p class="hero-subtitle">{{ translate('protecting_coastal_communities') }}</p>
+            <h1 class="hero-title">🛡️ {{ translate('coastal_alert') }}</h1>
+            <p class="hero-subtitle">{{ translate('maximum_intelligence') }}</p>
 
             <!-- Emergency Alert Banner with Enhanced Blinking Effect -->
             <div class="alert alert-warning glass-effect-enhanced blinking-alert d-inline-flex align-items-center"
                 role="alert">
                 <i class="fas fa-exclamation-triangle me-3"></i>
                 <div>
-                    <strong>{{ translate('coastal_alert') }} ACTIVE</strong> - {{
+                    <strong>{{ translate('coastal_alert') }} {{ translate('active') }}</strong> - {{
                     translate('protecting_coastal_communities') }}
                 </div>
             </div>
@@ -939,7 +939,7 @@
                     <div class="spinner-border text-primary mb-3" style="width: 2.5rem; height: 2.5rem;" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
-                    <h6 class="text-white mb-2">Searching coastal database...</h6>
+                    <h6 class="text-white mb-2">Searching database...</h6>
                     <p class="text-light mb-0 fw-medium">Looking for "${query}"</p>
                 </div>
             </div>

@@ -459,9 +459,14 @@
                         {% endif %}
                     </div>
                     {% else %}
-                    <a href="{{ url_for('edit_profile') }}" class="btn btn-outline-primary btn-sm">
-                        <i class="fas fa-edit me-2"></i>Edit Profile
-                    </a>
+                    <div class="mb-3">
+                        <a href="{{ url_for('edit_profile') }}" class="btn btn-outline-primary btn-sm me-2">
+                            <i class="fas fa-edit me-2"></i>Edit Profile
+                        </a>
+                        <a href="{{ url_for('register_volunteer') }}" class="btn btn-success btn-sm">
+                            <i class="fas fa-hands-helping me-2"></i>Be a Volunteer
+                        </a>
+                    </div>
                     {% endif %}
                 </div>
             </div>
@@ -491,6 +496,23 @@
                         <div class="points-number">{{ total_points }}</div>
                         <div class="stat-label">Points Earned</div>
                         <small class="text-muted">Through contributions</small>
+                    </div>
+
+                    <!-- Certificate Button (Premium Feature) -->
+                    {% set is_eligible = (completed_rescues > 0) or (total_points >= 100) %}
+                    <div class="text-center mt-3">
+                        {% if is_eligible %}
+                        <a href="{{ url_for('view_certificate', user_id=user.id) }}" class="btn btn-primary w-100">
+                            <i class="fas fa-certificate me-2"></i>View Official Certificate
+                        </a>
+                        {% else %}
+                        <div class="p-2 border border-secondary rounded bg-dark-subtle opacity-75">
+                            <small class="text-muted">
+                                <i class="fas fa-lock me-1"></i> Certificate Locked<br>
+                                (Need 100+ points or 1 rescue)
+                            </small>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>

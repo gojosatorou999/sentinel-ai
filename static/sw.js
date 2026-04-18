@@ -1,4 +1,4 @@
-const CACHE_NAME = 'coastalAlert-v1';
+const CACHE_NAME = 'sentinelAI-v1';
 const urlsToCache = [
     '/',
     '/static/css/style.css',
@@ -109,7 +109,7 @@ self.addEventListener('push', (event) => {
     };
 
     event.waitUntil(
-        self.registration.showNotification('CoastalAlert Emergency', options)
+        self.registration.showNotification('Sentinel AI Emergency', options)
     );
 });
 

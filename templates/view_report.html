@@ -445,30 +445,54 @@
     {% endif %}
 
     <div class="content-section">
-        <div class="section-header"><i class="fas fa-chart-bar"></i>Engagement Metrics</div>
+        <div class="section-header"><i class="fas fa-chart-line"></i>Engagement Analytics</div>
         <div class="metrics-grid">
             <div class="metric-item">
-                <div class="metric-icon">❤️</div>
+                <div class="metric-icon">👁️</div>
+                <div class="metric-count">{{ report.views_count }}</div>
+                <div class="metric-label">Total Views</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-icon">🤝</div>
                 <div class="metric-count">{{ report.likes_count }}</div>
-                <div class="metric-label">Likes</div>
+                <div class="metric-label">Local Approvals</div>
             </div>
             <div class="metric-item">
                 <div class="metric-icon">💬</div>
                 <div class="metric-count">{{ report.comments_count }}</div>
-                <div class="metric-label">Comments</div>
-            </div>
-            <div class="metric-item">
-                <div class="metric-icon">↗️</div>
-                <div class="metric-count">{{ report.shares_count }}</div>
-                <div class="metric-label">Shares</div>
+                <div class="metric-label">Total Comments</div>
             </div>
         </div>
     </div>
 
-    {% if current_user.role in ['official', 'analyst'] and report.verification_status != 'approved' %}
+    <!-- Specific Post Comments -->
+    <div class="content-section">
+        <div class="section-header"><i class="fas fa-comments"></i>Recent Activity & Comments</div>
+        <div class="comments-list mt-3">
+            {% if report.comments %}
+            {% for comment in report.comments|sort(attribute='timestamp', reverse=True) %}
+            <div class="comment-item p-3 mb-2 rounded bg-white bg-opacity-10">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <strong class="text-info">@{{ comment.user.username }}</strong>
+                    <small class="text-white-50">{{ comment.timestamp.strftime('%b %d, %H:%M') }}</small>
+                </div>
+                <p class="mb-0 text-white">{{ comment.text }}</p>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="text-center py-4 text-white-50">
+                <i class="fas fa-comment-slash fa-2x mb-2"></i>
+                <p>No community discussion yet.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if current_user.role in ['official', 'analyst'] %}
     <div class="action-card">
         <div class="action-header"><i class="fas fa-user-shield"></i>Verification Actions</div>
         <div class="action-buttons">
+            {% if report.verification_status != 'approved' %}
             <form action="{{ url_for('verify_report', report_id=report.id) }}" method="post" class="d-inline">
                 <input type="hidden" name="action" value="approve">
                 <button type="submit" class="btn-custom btn-success-custom">
@@ -486,6 +510,15 @@
                 <input type="hidden" name="action" value="pending">
                 <button type="submit" class="btn-custom btn-warning-custom">
                     <i class="fas fa-undo me-1"></i>Return to Pending
+                </button>
+            </form>
+            {% endif %}
+            {% else %}
+            <!-- Report is already approved -->
+            <form action="{{ url_for('verify_report', report_id=report.id) }}" method="post" class="d-inline">
+                <input type="hidden" name="action" value="pending">
+                <button type="submit" class="btn-custom btn-warning-custom">
+                    <i class="fas fa-arrow-left me-1"></i>Revert to Pending
                 </button>
             </form>
             {% endif %}

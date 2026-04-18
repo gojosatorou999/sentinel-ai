@@ -214,6 +214,44 @@
         border-color: rgba(33, 150, 243, 0.5);
     }
 
+    .btn-accept {
+        color: rgba(76, 175, 80, 0.9);
+        border-color: rgba(76, 175, 80, 0.3);
+    }
+
+    .btn-accept:hover {
+        background: rgba(76, 175, 80, 0.2);
+        border-color: rgba(76, 175, 80, 0.6);
+        color: #4caf50;
+    }
+
+    .btn-decline {
+        color: rgba(244, 67, 54, 0.9);
+        border-color: rgba(244, 67, 54, 0.3);
+    }
+
+    .btn-decline:hover {
+        background: rgba(244, 67, 54, 0.2);
+        border-color: rgba(244, 67, 54, 0.6);
+        color: #f44336;
+    }
+
+    .btn-complete {
+        color: rgba(255, 193, 7, 0.9);
+        border-color: rgba(255, 193, 7, 0.3);
+    }
+
+    .btn-complete:hover {
+        background: rgba(255, 193, 7, 0.2);
+        border-color: rgba(255, 193, 7, 0.6);
+        color: #ffd54f;
+    }
+
+    .btn-action.loading {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+
     .btn-dismiss:hover {
         background: rgba(244, 67, 54, 0.3);
         border-color: rgba(244, 67, 54, 0.5);
@@ -476,15 +514,33 @@
     </div>
 
     <!-- Action Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h5 class="mb-0">Recent Notifications</h5>
-        {% if notifications %}
-        <form action="{{ url_for('clear_all_notifications') }}" method="POST" class="d-inline">
-            <button type="submit" class="btn btn-clear-all" id="clearAllBtn">
-                <i class="fas fa-trash me-2"></i>Clear All
-            </button>
-        </form>
-        {% endif %}
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h5 class="mb-0">Recent Notifications</h5>
+            {% if not show_all %}
+            <small class="text-muted">Showing unread only</small>
+            {% else %}
+            <small class="text-muted">Showing all notifications</small>
+            {% endif %}
+        </div>
+        <div class="d-flex gap-2">
+            {% if not show_all %}
+            <a href="{{ url_for('notifications', show_all='true') }}" class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-history me-1"></i>Show All
+            </a>
+            {% else %}
+            <a href="{{ url_for('notifications') }}" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-bell me-1"></i>Unread Only
+            </a>
+            {% endif %}
+            {% if notifications %}
+            <form action="{{ url_for('clear_all_notifications') }}" method="POST" class="d-inline">
+                <button type="submit" class="btn btn-sm btn-clear-all" id="clearAllBtn">
+                    <i class="fas fa-trash me-2"></i>Clear All
+                </button>
+            </form>
+            {% endif %}
+        </div>
     </div>
 
     <!-- Notifications List -->
@@ -521,18 +577,36 @@
                     </div>
                 </div>
                 <div class="notification-actions">
+                    <!-- Accept/Decline buttons for volunteer assignments -->
+                    {% if notification.assignment_id and notification.assignment.status == 'pending' %}
+                    <button type="button" class="btn-action btn-accept" title="Accept Assignment"
+                        onclick="handleAssignmentResponse({{ notification.id }}, 'accept', this)">
+                        <i class="fas fa-check"></i>
+                    </button>
+                    <button type="button" class="btn-action btn-decline" title="Decline Assignment"
+                        onclick="handleAssignmentResponse({{ notification.id }}, 'decline', this)">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    {% endif %}
+
+                    <!-- Complete Rescue button for accepted assignments -->
+                    {% if 'completed' not in notification.message and notification.assignment_id %}
+                    <a href="{{ url_for('rescue_complete', assignment_id=notification.assignment_id) }}"
+                        class="btn-action btn-complete" title="Complete Rescue" style="text-decoration: none;">
+                        <i class="fas fa-flag-checkered"></i>
+                    </a>
+                    {% endif %}
+
                     {% if notification.report_id %}
                     <a href="#" class="btn-action btn-view" title="View Report"
                         onclick="showComingSoon('Report viewing')">
                         <i class="fas fa-external-link-alt"></i>
                     </a>
                     {% endif %}
-                    <form action="{{ url_for('mark_notification_read', notification_id=notification.id) }}"
-                        method="POST" class="d-inline">
-                        <button type="submit" class="btn-action btn-dismiss" title="Mark as read">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </form>
+                    <button type="button" class="btn-action btn-dismiss" title="Mark as read"
+                        onclick="markNotificationRead({{ notification.id }}, this)">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
             </div>
         </div>
@@ -668,5 +742,147 @@
     function safeNavigate(url) {
         window.location.href = url;
     }
+
+    // Mark notification as read via AJAX
+    function markNotificationRead(notificationId, button) {
+        fetch(`/api/notification/${notificationId}/read`, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Animate the card removal
+                    const card = button.closest('.notification-card');
+                    if (card) {
+                        card.style.opacity = '0';
+                        card.style.transform = 'translateX(-20px)';
+                        card.style.transition = 'all 0.3s ease-out';
+
+                        setTimeout(() => {
+                            card.style.display = 'none';
+                            // Update unread count
+                            updateUnreadCount();
+                        }, 300);
+                    }
+                } else {
+                    console.error('Error marking notification:', data.error);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    // Update unread count
+    function updateUnreadCount() {
+        const unreadCards = document.querySelectorAll('.notification-card:not([data-read="True"])');
+        document.getElementById('unreadCount').textContent = unreadCards.length;
+    }
+
+    // Handle volunteer assignment response (accept/decline)
+    async function handleAssignmentResponse(notificationId, action, button) {
+        button.classList.add('loading');
+        button.disabled = true;
+
+        try {
+            const response = await fetch(`/api/coordination/assignment/respond`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    notification_id: notificationId,
+                    action: action
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Remove the notification card with animation
+                const card = button.closest('.notification-card');
+                if (card) {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateX(-20px)';
+                    card.style.transition = 'all 0.3s ease-out';
+
+                    setTimeout(() => {
+                        card.style.display = 'none';
+                        updateUnreadCount();
+                    }, 300);
+                }
+
+                // Show success message
+                const actionText = action === 'accept' ? 'accepted' : 'declined';
+                console.log(`Assignment ${actionText} successfully!`);
+
+                // Optional: Show a toast notification
+                if (typeof showToast === 'function') {
+                    showToast(`Assignment ${actionText}!`, 'success');
+                }
+            } else {
+                alert(data.error || `Failed to ${action} assignment`);
+                button.classList.remove('loading');
+                button.disabled = false;
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert(`Error ${action}ing assignment: ${error.message}`);
+            button.classList.remove('loading');
+            button.disabled = false;
+        }
+    }
+
+    // Auto-refresh notifications page every 3 seconds to show new notifications
+    document.addEventListener('DOMContentLoaded', function () {
+        const refreshNotifications = async function () {
+            try {
+                // Silently fetch the page content and update if there are new notifications
+                const response = await fetch(window.location.href);
+                const html = await response.text();
+
+                // Parse the new HTML
+                const parser = new DOMParser();
+                const newDoc = parser.parseFromString(html, 'text/html');
+
+                // Get the current and new notification lists
+                const currentNotifList = document.querySelector('.notifications-list');
+                const newNotifList = newDoc.querySelector('.notifications-list');
+
+                if (currentNotifList && newNotifList) {
+                    // If the content has changed, update it
+                    if (currentNotifList.innerHTML !== newNotifList.innerHTML) {
+                        console.log('New notifications detected, refreshing...');
+                        currentNotifList.innerHTML = newNotifList.innerHTML;
+
+                        // Re-attach event listeners to new buttons
+                        attachNotificationListeners();
+                    }
+                }
+            } catch (error) {
+                console.error('Error refreshing notifications:', error);
+            }
+        };
+
+        // Function to attach event listeners to all action buttons
+        function attachNotificationListeners() {
+            document.querySelectorAll('.assignment-action-btn').forEach(button => {
+                button.addEventListener('click', function (e) {
+                    const action = this.dataset.action;
+                    const assignmentId = this.dataset.assignmentId;
+                    respondToAssignment(action, assignmentId, this);
+                });
+            });
+        }
+
+        // Initial attachment of listeners
+        attachNotificationListeners();
+
+        // Refresh every 3 seconds while on notifications page
+        setInterval(refreshNotifications, 3000);
+    });
 </script>
 {% endblock %}

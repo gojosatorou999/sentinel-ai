@@ -45,9 +45,9 @@ TRANSLATIONS = {
         
         # Messages
         'report_submitted': 'Your report has been submitted! +10 points! AI Confidence: {confidence}%',
-        'login_success': 'Welcome back! Thank you for contributing to coastal safety.',
+        'login_success': 'Welcome back! Thank you for contributing to Sentinel AI.',
         'official_login': 'Welcome back, Officer! Thank you for keeping our community safe.',
-        'analyst_login': 'Welcome back, Analyst! Your insights help protect our coasts.',
+        'analyst_login': 'Welcome back, Analyst! Your insights help protect our community.',
         'registration_success': 'Your account has been created! You can now log in.',
         'profile_updated': 'Your profile has been updated!',
         'location_saved': 'Your location has been saved!',
@@ -102,11 +102,11 @@ TRANSLATIONS = {
         'user_not_found': 'User not found.',
 
         # NEW KEYS FOR ALL TEMPLATES
-        'coastal_safety_network': 'Coastal Safety Network',
-        'coastal_alert': 'CoastalAlert',
-        'coastal_safety_ai_assistant': 'Coastal Safety AI Assistant',
-        'protecting_coastal_communities': 'Protecting coastal communities worldwide',
-        'official_collaboration': 'Officially collaborating with INCOIS and coastal safety organizations',
+        'coastal_safety_network': 'Sentinel AI',
+        'coastal_alert': 'Sentinel AI',
+        'coastal_safety_ai_assistant': 'Sentinel AI Assistant',
+        'protecting_coastal_communities': 'Protecting communities worldwide',
+        'official_collaboration': 'Officially collaborating with safety and emergency organizations',
         'all_rights_reserved': 'All rights reserved',
         
         # Social media
@@ -191,10 +191,12 @@ TRANSLATIONS = {
         'coastal_flooding': 'கடற்கரை வெள்ளம்',
         
         'report_submitted': 'உங்கள் புகாரை சமர்ப்பித்துள்ளோம்! +10 புள்ளிகள்! AI நம்பகத்தன்மை: {confidence}%',
-        'login_success': 'மீண்டும் வரவேற்கிறோம்! கடலோர பாதுகாப்பில் பங்களித்தமைக்கு நன்றி.',
+        'login_success': 'மீண்டும் வரவேற்கிறோம்! Sentinel AI-க்கு பங்களித்தமைக்கு நன்றி.',
         
         # Add all missing Tamil translations
-        'coastal_alert': 'கடலோர எச்சரிக்கை',
+        'coastal_safety_network': 'Sentinel AI',
+        'coastal_alert': 'Sentinel AI',
+        'coastal_safety_ai_assistant': 'Sentinel AI உதவியாளர்',
         'community': 'சமூகம்',
         'ai_assistant': 'AI உதவியாளர்',
         'join_now': 'இப்போது சேருங்கள்',
@@ -233,7 +235,7 @@ TRANSLATIONS = {
         'report_submitted': 'आपकी रिपोर्ट सबमिट कर दी गई है! +10 अंक! AI विश्वास: {confidence}%',
         
         # Add Hindi translations
-        'coastal_alert': 'CoastalAlert',
+        'coastal_alert': 'Sentinel AI',
         'community': 'समुदाय',
         'ai_assistant': 'AI सहायक',
         'join_now': 'अभी जुड़ें',
@@ -247,7 +249,7 @@ TRANSLATIONS = {
         'about': 'గురించి',
         'report': 'హాజర్డ్ నివేదించండి',
         'dashboard': 'డాష్బోర్డ్',
-        'profile': 'ప్రొఫైల్',
+        'profile': 'ప్రொఫైల్',
         'leaderboard': 'లీడర్బోర్డ్',
         'login': 'లాగిన్',
         'register': 'నమోదు',
@@ -264,13 +266,57 @@ TRANSLATIONS = {
         'report_submitted': 'మీ నివేదిక సమర్పించబడింది! +10 పాయింట్లు! AI నమ్మకం: {confidence}%',
         
         # Add Telugu translations
-        'coastal_alert': 'CoastalAlert',
+        'coastal_alert': 'Sentinel AI',
         'community': 'కమ్యూనిటీ',
         'ai_assistant': 'AI అసిస్టెంట్',
         'join_now': 'ఇప్పుడే చేరండి',
         'en_language': 'ఆంగ్లం',
         'te_language': 'తెలుగు',
         # Add more Telugu translations...
+    },
+    'ml': {
+        'home': 'ഹോം',
+        'about': 'വിവരങ്ങൾ',
+        'report': 'അപകടം റിപ്പോർട്ട് ചെയ്യുക',
+        'dashboard': 'ഡാഷ്‌ബോർഡ്',
+        'profile': 'പ്രൊഫൈൽ',
+        'leaderboard': 'ലീഡർബോർഡ്',
+        'login': 'ലോഗിൻ',
+        'register': 'രജിസ്റ്റർ',
+        'logout': 'ലോഗ് ഔട്ട്',
+        'search': 'തിരയുക',
+        'notifications': 'അറിയിപ്പുകൾ',
+        
+        'tsunami': 'സുനാമി',
+        'storm_surge': 'തിരമാല',
+        'high_waves': 'ഉയർന്ന വായു',
+        'coastal_flooding': 'തീരദേശ വെള്ളപ്പൊക്കം',
+        
+        'report_submitted': 'നിങ്ങളുടെ റിപ്പോർട്ട് സമർപ്പിച്ചു! +10 പോയിന്റുകൾ! AI ആത്മവിശ്വാസം: {confidence}%',
+        'en_language': 'ഇംഗ്ലീഷ്',
+        'ml_language': 'മലയാളം',
+    },
+    'kn': {
+        'home': 'ಮನೆ',
+        'about': 'ಬಗ್ಗೆ',
+        'report': 'ಅಪಾಯ ವರದಿ ಮಾಡಿ',
+        'dashboard': 'ಡ್ಯಾಶ್‌ಬೋರ್ಡ್',
+        'profile': 'ಪ್ರೊಫೈಲ್',
+        'leaderboard': 'ಲೀಡರ್‌ಬೋರ್ಡ್',
+        'login': 'ಲಾಗಿನ್',
+        'register': 'ನೋಂದಣಿ',
+        'logout': 'ಲಾಗ್‌ಔಟ್',
+        'search': 'ಹುಡುಕಿ',
+        'notifications': 'ಅಧಿಸೂಚನೆಗಳು',
+        
+        'tsunami': 'ಸುನಾಮಿ',
+        'storm_surge': 'ಚಂಡಮಾರುತ',
+        'high_waves': 'ಹೆಚ್ಚಿನ ಅಲೆಗಳು',
+        'coastal_flooding': 'ಕರಾವಳಿ ಪ್ರವಾಹ',
+        
+        'report_submitted': 'ನಿಮ್ಮ ವರದಿ ಸಲ್ಲಿಕೆಯಾಗಿದೆ! +10 ಅಂಕಗಳು! AI ವಿಶ್ವಾಸ: {confidence}%',
+        'en_language': 'ಇಂಗ್ಲಿಷ್',
+        'kn_language': 'ಕನ್ನಡ',
     }
 }
 

@@ -75,7 +75,7 @@ function showInstallBanner() {
       animation: slideUp 0.3s ease-out;
     ">
       <div style="flex: 1;">
-        <div style="font-weight: 600; margin-bottom: 4px;">📱 Install CoastalAlert</div>
+        <div style="font-weight: 600; margin-bottom: 4px;">📱 Install Sentinel AI</div>
         <div style="font-size: 0.85rem; opacity: 0.9;">Add to home screen for quick access</div>
       </div>
       <button id="install-now-btn" style="
@@ -189,7 +189,7 @@ async function requestNotificationPermission() {
 }
 
 // Show PWA status in console
-console.log('🌊 CoastalAlert PWA Status:');
+console.log('🛡️ Sentinel AI PWA Status:');
 console.log('- Running as PWA:', isPWA());
 console.log('- Service Worker supported:', 'serviceWorker' in navigator);
 console.log('- Notifications supported:', 'Notification' in window);

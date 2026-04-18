@@ -247,5 +247,97 @@
             </div>
         </div>
     </div>
+    <!-- WhatsApp District Alert Card -->
+    <div class="card mb-4">
+        <div class="card-header py-3 ps-4 bg-transparent border-0">
+            <h5 class="fw-bold text-white mb-0">📲 Send District WhatsApp Alert</h5>
+        </div>
+        <div class="card-body p-4 pt-0">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label text-muted small text-uppercase fw-bold">Districts</label>
+                    <select id="coordWaDistrictSelect" class="form-select bg-dark text-white border-secondary" multiple size="5">
+                        <option value="Srikakulam">Srikakulam</option>
+                        <option value="Vizianagaram">Vizianagaram</option>
+                        <option value="Visakhapatnam">Visakhapatnam</option>
+                        <option value="East Godavari">East Godavari</option>
+                        <option value="West Godavari">West Godavari</option>
+                        <option value="Krishna">Krishna</option>
+                        <option value="Guntur">Guntur</option>
+                        <option value="Prakasam">Prakasam</option>
+                        <option value="Nellore">Nellore</option>
+                        <option value="Kurnool">Kurnool</option>
+                        <option value="Kadapa">Kadapa</option>
+                        <option value="Anantapur">Anantapur</option>
+                        <option value="Chittoor">Chittoor</option>
+                        <option value="YSR Kadapa">YSR Kadapa</option>
+                    </select>
+                    <small class="text-muted">Hold Ctrl / Cmd to select multiple</small>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label text-muted small text-uppercase fw-bold">Alert Type</label>
+                    <select id="coordWaAlertType" class="form-select bg-dark text-white border-secondary mb-3"
+                        onchange="document.getElementById('coordWaMessage').value = window._coordWaDefaults[this.value] || ''">
+                        <option value="Flood Warning">🌊 Flood Warning</option>
+                        <option value="Cyclone Alert">🌀 Cyclone Alert</option>
+                        <option value="Heavy Rainfall Advisory">🌧️ Heavy Rainfall Advisory</option>
+                        <option value="Reservoir Overflow">💧 Reservoir Overflow</option>
+                        <option value="General Advisory">📢 General Advisory</option>
+                    </select>
+                    <textarea id="coordWaMessage" class="form-control bg-dark text-white border-secondary" rows="3"
+                        placeholder="Alert message…"></textarea>
+                </div>
+                <div class="col-md-4 d-flex flex-column justify-content-end">
+                    <button id="coordWaSendBtn" class="btn btn-warning fw-bold"
+                        onclick="window.coordSendDistrictAlert()">
+                        🚨 Send WhatsApp Alert
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="coordToastContainer" style="position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;"></div>
 </div>
+<script>
+    window._coordWaDefaults = {
+        'Flood Warning':           'Severe flooding risk detected. Evacuate low-lying areas immediately.',
+        'Cyclone Alert':           'A tropical cyclone is approaching. Secure property and follow evacuation orders.',
+        'Heavy Rainfall Advisory': 'Heavy rainfall expected. Avoid waterlogged areas and river banks.',
+        'Reservoir Overflow':      'Reservoir nearing overflow. Downstream areas must evacuate immediately.',
+        'General Advisory':        'An official advisory has been issued. Stay alert and follow local authority instructions.',
+    };
+    // Set initial default
+    (function(){ const t = document.getElementById('coordWaAlertType'); const m = document.getElementById('coordWaMessage'); if(t && m) m.value = window._coordWaDefaults[t.value] || ''; })();
+
+    function coordShowToast(msg, type) {
+        const c = document.getElementById('coordToastContainer'); if (!c) return;
+        const t = document.createElement('div');
+        t.style.cssText = 'background:rgba(15,23,42,.98);border:1px solid rgba(255,255,255,.15);backdrop-filter:blur(16px);color:#e5e7eb;border-radius:12px;padding:.85rem 1.25rem;margin-top:.5rem;min-width:260px;box-shadow:0 8px 32px rgba(0,0,0,.4);';
+        t.innerHTML = (type === 'success' ? '✅ ' : '❌ ') + msg;
+        c.appendChild(t);
+        setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity .4s'; setTimeout(() => t.remove(), 400); }, 4500);
+    }
+
+    window.coordSendDistrictAlert = async function () {
+        const sel  = document.getElementById('coordWaDistrictSelect');
+        const at   = document.getElementById('coordWaAlertType');
+        const msg  = document.getElementById('coordWaMessage');
+        const btn  = document.getElementById('coordWaSendBtn');
+        const dists = sel ? Array.from(sel.selectedOptions).map(o => o.value) : [];
+        const message = msg ? msg.value.trim() : '';
+        if (!dists.length) { coordShowToast('Select at least one district.', 'error'); return; }
+        if (!message)      { coordShowToast('Enter a message.', 'error'); return; }
+        if (btn) { btn.disabled = true; btn.textContent = '⏳ Sending…'; }
+        try {
+            const res  = await fetch('/api/send_district_whatsapp_alert', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ districts: dists, alert_type: at ? at.value : 'General Advisory', message })
+            });
+            const data = await res.json();
+            if (res.ok) coordShowToast(`Sent to ${data.sent} user(s) across ${data.districts_targeted.length} district(s).`, 'success');
+            else        coordShowToast(`Error: ${data.error || 'Failed'}`, 'error');
+        } catch(e) { coordShowToast(`Network error: ${e.message}`, 'error'); }
+        finally { if (btn) { btn.disabled = false; btn.textContent = '🚨 Send WhatsApp Alert'; } }
+    };
+</script>
 {% endblock %}

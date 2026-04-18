@@ -30,7 +30,8 @@ class MultilingualForm(FlaskForm):
                 return translated
         except:
             pass
-            
+        
+        # If no translation found, return the default label
         return default_label
 
 class RegistrationForm(MultilingualForm):
@@ -380,8 +381,11 @@ class VolunteerRegistrationForm(MultilingualForm):
     latitude = FloatField('Latitude', validators=[Optional()])
     longitude = FloatField('Longitude', validators=[Optional()])
     availability = SelectField('Availability', choices=[
-        ('available', 'Available'),
-        ('busy', 'Busy'),
+        ('available_24_7', 'Available 24/7'),
+        ('available_weekdays', 'Available Weekdays'),
+        ('available_weekends', 'Available Weekends'),
+        ('available_evenings', 'Available Evenings'),
+        ('available_limited', 'Limited Availability'),
         ('unavailable', 'Unavailable')
     ], validators=[DataRequired()])
     submit = SubmitField('Register as Volunteer')
@@ -407,9 +411,12 @@ class VolunteerRegistrationForm(MultilingualForm):
                 ('expert', translate('expert_level'))
             ]
             self.availability.choices = [
-                ('available', translate('available_status')),
-                ('busy', translate('busy_status')),
-                ('unavailable', translate('unavailable_status'))
+                ('available_24_7', translate('available_24_7') or 'Available 24/7'),
+                ('available_weekdays', translate('available_weekdays') or 'Available Weekdays'),
+                ('available_weekends', translate('available_weekends') or 'Available Weekends'),
+                ('available_evenings', translate('available_evenings') or 'Available Evenings'),
+                ('available_limited', translate('available_limited') or 'Limited Availability'),
+                ('unavailable', translate('unavailable_status') or 'Unavailable')
             ]
         except ImportError:
             pass
@@ -701,3 +708,41 @@ class EmergencyExportForm(MultilingualForm):
             ]
         except ImportError:
             pass
+class CommunityEventForm(FlaskForm):
+    title = StringField('Event Title', validators=[DataRequired()])
+    description = TextAreaField('Description', validators=[DataRequired()])
+    event_type = SelectField('Event Type', choices=[
+        ('disaster_prep', 'Disaster Prep (e.g., Sandbag filling)'),
+        ('environment', 'Environment (e.g., Beach cleanup)'),
+        ('social', 'Social (e.g., Food distribution)')
+    ], validators=[DataRequired()])
+    location = StringField('Location', validators=[DataRequired()])
+    latitude = FloatField('Latitude', validators=[Optional()])
+    longitude = FloatField('Longitude', validators=[Optional()])
+    # HTML5 datetime-local returns YYYY-MM-DDTHH:MM
+    date_time = DateTimeField('Date & Time', format='%Y-%m-%dT%H:%M', validators=[DataRequired()])
+    image = FileField('Event Image', validators=[FileAllowed(['jpg', 'jpeg', 'png'])])
+    submit = SubmitField('Create Event')
+
+class ResourceListingForm(FlaskForm):
+    listing_type = SelectField('Listing Type', choices=[
+        ('have', 'Donor (I Have Spare Resources)'),
+        ('need', 'Requester (I Need Help/Resources)')
+    ], validators=[DataRequired()])
+    category = SelectField('Category', choices=[
+        ('medical', 'Medical (Medicine, First Aid, Insulin)'),
+        ('food', 'Food (Meals, Baby Formula, Dry Fruits)'),
+        ('water', 'Water (Drinking Water, Filtration)'),
+        ('shelter', 'Shelter (Blankets, Tents, Sleeping Bags)'),
+        ('gear', 'Gear (Generator, Flashlights, Batteries)'),
+        ('transport', 'Transport (Boat, 4x4 Vehicle, Drone)'),
+        ('other', 'Other')
+    ], validators=[DataRequired()])
+    title = StringField('Resource Title', validators=[DataRequired(), Length(max=100)])
+    description = TextAreaField('Description', validators=[DataRequired()])
+    quantity = StringField('Quantity', validators=[Optional()])
+    location = StringField('Location', validators=[DataRequired()])
+    latitude = FloatField('Latitude', validators=[DataRequired()])
+    longitude = FloatField('Longitude', validators=[DataRequired()])
+    urgent = BooleanField('Critical / Urgent')
+    submit = SubmitField('Post to LifeLine')

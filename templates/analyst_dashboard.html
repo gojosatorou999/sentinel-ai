@@ -3,7 +3,7 @@
 {% block title %}Analyst Dashboard{% endblock %}
 
 {% block head_extra %}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet" />
 <style>
     .main-content-container {
         background: rgba(15, 23, 42, 0.92);
@@ -41,6 +41,278 @@
     .hidden-reports {
         display: none;
     }
+
+    /* Live Weather Styling */
+    .weather-info {
+        background: rgba(0, 0, 0, 0.8);
+        color: #fff;
+        padding: 10px 15px;
+        border-radius: 8px;
+        font-size: 12px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .live-indicator {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        background: #10b981;
+        border-radius: 50%;
+        margin-right: 6px;
+        animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+
+        0%,
+        100% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0.4;
+        }
+    }
+
+    .weather-legend {
+        background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
+        padding: 16px;
+        border-radius: 12px;
+        border: 1.5px solid rgba(59, 130, 246, 0.3);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+        max-width: 280px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .weather-legend h6 {
+        margin: 0 0 12px 0 !important;
+        color: #3b82f6;
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .legend-section {
+        margin-bottom: 12px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .legend-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .legend-section-title {
+        color: #60a5fa;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .weather-legend-item {
+        display: flex;
+        align-items: center;
+        margin: 6px 0;
+        font-size: 11.5px;
+        color: #e5e7eb;
+        transition: all 0.3s ease;
+        padding: 4px 6px;
+        border-radius: 4px;
+    }
+
+    .weather-legend-item:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: #fff;
+        padding-left: 8px;
+    }
+
+    .weather-legend-dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        margin-right: 8px;
+        flex-shrink: 0;
+        box-shadow: 0 0 6px rgba(0, 0, 0, 0.3);
+        transition: all 0.2s ease;
+    }
+
+    .weather-legend-item:hover .weather-legend-dot {
+        transform: scale(1.15);
+        box-shadow: 0 0 12px currentColor;
+    }
+
+    .legend-intensity-bar {
+        display: flex;
+        gap: 2px;
+        align-items: center;
+        margin-right: 8px;
+        flex-shrink: 0;
+    }
+
+    .intensity-segment {
+        height: 4px;
+        width: 8px;
+        border-radius: 2px;
+    }
+
+    /* Alert Location Items */
+    .alert-locations-list {
+        max-height: 400px;
+        overflow-y: auto;
+        margin: 15px 0;
+        padding: 0;
+    }
+
+    .alert-location-item {
+        display: flex;
+        align-items: flex-start;
+        padding: 12px;
+        margin-bottom: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+
+    .alert-location-item:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(59, 130, 246, 0.3);
+        transform: translateX(4px);
+    }
+
+    .alert-location-checkbox {
+        margin-right: 12px;
+        flex-shrink: 0;
+        padding-top: 2px;
+    }
+
+    .alert-location-checkbox input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        accent-color: #3b82f6;
+    }
+
+    .alert-location-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .alert-location-name {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 6px;
+        font-weight: 600;
+        color: #e5e7eb;
+    }
+
+    .alert-location-icon {
+        font-size: 16px;
+    }
+
+    .alert-location-name .badge {
+        font-size: 10px;
+        padding: 2px 6px;
+    }
+
+    .alert-location-details {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        font-size: 12px;
+        color: #9ca3af;
+    }
+
+    .alert-location-details small {
+        white-space: nowrap;
+    }
+
+    /* Scrollbar styling */
+    .alert-locations-list::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .alert-locations-list::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 3px;
+    }
+
+    .alert-locations-list::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 3px;
+    }
+
+    .alert-locations-list::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+    /* APWRIMS / Risk Graph extra styles */
+    .nav-tabs.custom-tabs .nav-link {
+        color: rgba(255,255,255,0.6);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-bottom: none;
+        border-radius: 10px 10px 0 0;
+        background: rgba(30,41,59,0.4);
+        transition: all .25s;
+    }
+    .nav-tabs.custom-tabs .nav-link.active {
+        color: #fff;
+        background: rgba(14,165,233,0.18);
+        border-color: rgba(14,165,233,0.35);
+        border-bottom-color: transparent;
+    }
+    .nav-tabs.custom-tabs .nav-link:hover:not(.active) {
+        color: #e5e7eb;
+        background: rgba(255,255,255,0.06);
+    }
+    #riskTableWrapper {
+        max-height: 320px;
+        overflow-y: auto;
+    }
+    #riskTableWrapper::-webkit-scrollbar { width: 5px; }
+    #riskTableWrapper::-webkit-scrollbar-track { background: rgba(255,255,255,0.04); }
+    #riskTableWrapper::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.18); border-radius: 3px; }
+    .risk-badge {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 999px;
+        font-size: .72rem;
+        font-weight: 700;
+    }
+    .toast-container-custom {
+        position: fixed;
+        bottom: 1.5rem;
+        right: 1.5rem;
+        z-index: 9999;
+    }
+    .toast-custom {
+        background: rgba(15,23,42,0.98);
+        border: 1px solid rgba(255,255,255,0.15);
+        backdrop-filter: blur(16px);
+        color: #e5e7eb;
+        border-radius: 12px;
+        padding: .85rem 1.25rem;
+        margin-top: .5rem;
+        min-width: 280px;
+        box-shadow: 0 8px 32px rgba(0,0,0,.4);
+        animation: slideInRight .3s ease;
+    }
+    @keyframes slideInRight {
+        from { transform: translateX(60px); opacity: 0; }
+        to   { transform: translateX(0);   opacity: 1; }
+    }
 </style>
 {% endblock %}
 
@@ -48,12 +320,15 @@
 <div class="main-content-container" id="dashboardContent">
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <div>
-            <h2 class="fw-bold mb-0">🧠 Analyst Dashboard</h2>
-            <p class="text-white-50 small mb-0">AI-Powered Disaster Analytics</p>
+            <h2 class="fw-bold mb-0">🧠 {{ translate('analyst_dashboard') }}</h2>
+            <p class="text-white-50 small mb-0">{{ translate('ai_powered_analytics') }}</p>
         </div>
         <div class="d-flex gap-2">
-            <button class="btn btn-warning btn-sm fw-bold" onclick="sendTestWarning()">Global Alert</button>
-            <button class="btn btn-primary btn-sm fw-bold" id="exportBtn">Export PDF</button>
+            <a href="{{ url_for('simulation') }}" class="btn btn-info btn-sm fw-bold">{{
+                translate('run_risk_simulation') }}</a>
+            <button class="btn btn-warning btn-sm fw-bold" onclick="sendTestWarning()">{{ translate('global_alert')
+                }}</button>
+            <button class="btn btn-primary btn-sm fw-bold" id="exportBtn">{{ translate('export_pdf') }}</button>
         </div>
     </div>
 
@@ -61,26 +336,26 @@
     <div class="row g-3 mb-4">
         <div class="col-md-3">
             <div class="card stat-card h-100" style="border-color: #0ea5e9;">
-                <label class="text-white-50 small text-uppercase fw-bold">Total Incidents</label>
+                <label class="text-white-50 small text-uppercase fw-bold">{{ translate('total_incidents') }}</label>
                 <div class="h3 fw-bold">{{ total_reports }}</div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="card stat-card h-100" style="border-color: #10b981;">
-                <label class="text-white-50 small text-uppercase fw-bold">Verification Rate</label>
+                <label class="text-white-50 small text-uppercase fw-bold">{{ translate('verification_rate') }}</label>
                 <div class="h3 fw-bold">{{ "%.1f"|format((approved_reports/total_reports*100) if total_reports > 0 else
                     0) }}%</div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="card stat-card h-100" style="border-color: #06b6d4;">
-                <label class="text-white-50 small text-uppercase fw-bold">Personnel</label>
+                <label class="text-white-50 small text-uppercase fw-bold">{{ translate('personnel') }}</label>
                 <div class="h3 fw-bold">{{ active_users }}</div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="card stat-card h-100" style="border-color: #f59e0b;">
-                <label class="text-white-50 small text-uppercase fw-bold">Pending</label>
+                <label class="text-white-50 small text-uppercase fw-bold">{{ translate('pending') }}</label>
                 <div class="h3 fw-bold">{{ pending_reports }}</div>
             </div>
         </div>
@@ -91,7 +366,7 @@
         <div class="col-lg-6">
             <div class="card h-100 overflow-hidden">
                 <div class="card-header border-bottom border-white border-opacity-10 py-2">
-                    <h6 class="m-0 fw-bold">Incident Hotspots Heatmap</h6>
+                    <h6 class="m-0 fw-bold">{{ translate('incident_hotspots') }}</h6>
                 </div>
                 <div class="card-body p-0">
                     <div id="heatmapMap" class="dashboard-map"></div>
@@ -101,10 +376,114 @@
         <div class="col-lg-6">
             <div class="card h-100 overflow-hidden">
                 <div class="card-header border-bottom border-white border-opacity-10 py-2">
-                    <h6 class="m-0 fw-bold">Weather & Early Warnings</h6>
+                    <h6 class="m-0 fw-bold">{{ translate('weather_warnings') }}</h6>
                 </div>
                 <div class="card-body p-0">
                     <div id="warningMap" class="dashboard-map"></div>
+                </div>
+            </div>
+        </div>
+    </div>    <!-- ============================================================
+         AP DISTRICT INTELLIGENCE MAPS — Live Leaflet Maps
+    ============================================================ -->
+    <div class="row g-3 mb-4">
+        <div class="col-12">
+            <div class="card overflow-hidden">
+                <div class="card-header border-bottom border-white border-opacity-10 py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <h6 class="m-0 fw-bold">🗺️ AP District Intelligence Maps</h6>
+                        <span class="live-indicator"></span>
+                        <span class="text-success fw-bold small">LIVE DATA</span>
+                    </div>
+                    <button class="btn btn-outline-info btn-sm" id="apwrimsRefreshBtn" onclick="window.apwrimsForceRefresh()">⟳ Refresh Maps</button>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="nav nav-tabs custom-tabs px-3 pt-2" id="apwrimsTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="tab-rainfall" data-bs-toggle="tab" data-bs-target="#pane-rainfall" type="button" role="tab" data-maptype="rainfall">🌧️ Rainfall (mm)</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="tab-soil" data-bs-toggle="tab" data-bs-target="#pane-soil" type="button" role="tab" data-maptype="soil">🌱 Soil Moisture (%)</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="tab-reservoir" data-bs-toggle="tab" data-bs-target="#pane-reservoir" type="button" role="tab" data-maptype="reservoir">💧 Reservoir Level (%)</button>
+                        </li>
+                    </ul>
+                    <div class="tab-content" id="apwrimsTabContent">
+                        <div class="tab-pane fade show active" id="pane-rainfall" role="tabpanel">
+                            <div id="apwrimsMap-rainfall" style="width:100%;height:500px;border-radius:0 0 20px 20px;"></div>
+                        </div>
+                        <div class="tab-pane fade" id="pane-soil" role="tabpanel">
+                            <div id="apwrimsMap-soil" style="width:100%;height:500px;border-radius:0 0 20px 20px;"></div>
+                        </div>
+                        <div class="tab-pane fade" id="pane-reservoir" role="tabpanel">
+                            <div id="apwrimsMap-reservoir" style="width:100%;height:500px;border-radius:0 0 20px 20px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ============================================================
+         STEP 3: DISTRICT DISASTER RISK PROBABILITY
+    ============================================================ -->
+    <div class="row g-3 mb-4">
+        <div class="col-12">
+            <div class="card p-3">
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                    <div>
+                        <h6 class="fw-bold mb-0">📊 District Disaster Risk Probability</h6>
+                        <small class="text-white-50" id="riskLastUpdated">Loading…</small>
+                    </div>
+                    <button class="btn btn-outline-info btn-sm" id="riskRefreshBtn" onclick="window.loadRiskData()">⟳ Refresh</button>
+                </div>
+                <!-- Spinner -->
+                <div id="riskSpinner" class="text-center py-5">
+                    <div class="spinner-border text-info" role="status"></div>
+                    <p class="text-white-50 mt-2 small">Fetching live district data…</p>
+                </div>
+                <!-- Chart -->
+                <div id="riskChartWrapper" style="display:none; position:relative; height:340px;">
+                    <canvas id="riskBarChart"></canvas>
+                </div>
+                <!-- Table -->
+                <div id="riskTableWrapper" class="mt-3" style="display:none;">
+                    <table class="table table-hover text-white small" id="riskTable">
+                        <thead class="text-white-50">
+                            <tr>
+                                <th>District</th>
+                                <th>Risk Score</th>
+                                <th>Risk Level</th>
+                                <th>Primary Hazard</th>
+                                <th>Rainfall (mm)</th>
+                                <th>Wind (km/h)</th>
+                                <th>Soil %</th>
+                                <th>Temp (°C)</th>
+                                <th>Reservoir %</th>
+                            </tr>
+                        </thead>
+                        <tbody id="riskTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>  <!-- Global Live Weather Radar (Windy) -->
+    <div class="row g-3 mb-4">
+        <div class="col-12">
+            <div class="card overflow-hidden" style="min-height: 400px; height: 50vh; position: relative; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1) !important; background: #1a2234;">
+                <div class="card-header py-2 d-flex justify-content-between align-items-center" style="background: #151b2b; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <h6 class="m-0 fw-bold d-flex align-items-center gap-2" style="font-size: 15px; color: #f8fafc;">
+                        <span class="live-indicator" style="background: #10b981; width: 8px; height: 8px; border-radius: 50%; display: inline-block; animation: pulse 2s infinite;"></span>
+                        🌍 Windy — Live Weather Radar
+                    </h6>
+                    <a href="https://www.windy.com/?20.5937,78.9629,5" target="_blank" class="btn btn-sm" style="border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; border-radius: 6px; padding: 2px 10px; font-size: 12px; font-weight: 500; background: rgba(56, 189, 248, 0.05); transition: all 0.2s;">
+                        Open Full ↗
+                    </a>
+                </div>
+                <div class="card-body p-0" style="position: relative; overflow: hidden; width: 100%; height: calc(100% - 41px);">
+                    <iframe src="https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=%C2%B0C&metricWind=km/h&zoom=5&overlay=rain&menu=&message=true&marker=&calendar=now&city=&shiftLon=0&shiftLat=0&lat=20.5937&lon=78.9629&detailLat=20.5937&detailLon=78.9629" width="100%" height="100%" frameborder="0" allowfullscreen style="display: block;"></iframe>
                 </div>
             </div>
         </div>
@@ -113,28 +492,36 @@
     <!-- Charts -->
     <div class="row g-3 mb-4">
         <div class="col-lg-4">
-            <div class="card p-3">
-                <h6 class="fw-bold mb-3">Hazard Distribution</h6>
-                <div style="height: 250px;"><canvas id="hazardDistributionChart"></canvas></div>
+            <div class="card p-3 h-100">
+                <h6 class="fw-bold mb-3">{{ translate('hazard_distribution') if translate('hazard_distribution') !=
+                    'Hazard Distribution' else 'Hazard Distribution' }}</h6>
+                <div class="chart-container" style="position: relative; height: 250px; width: 100%;">
+                    <canvas id="hazardDistributionChart"></canvas>
+                </div>
             </div>
         </div>
         <div class="col-lg-4">
-            <div class="card p-3">
-                <h6 class="fw-bold mb-3">Incident Velocity</h6>
-                <div style="height: 250px;"><canvas id="reportsTimelineChart"></canvas></div>
+            <div class="card p-3 h-100">
+                <h6 class="fw-bold mb-3">{{ translate('incident_velocity') }}</h6>
+                <div class="chart-container" style="position: relative; height: 250px; width: 100%;">
+                    <canvas id="reportsTimelineChart"></canvas>
+                </div>
             </div>
         </div>
         <div class="col-lg-4">
-            <div class="card p-3">
-                <h6 class="fw-bold mb-3">Network Participation</h6>
-                <div style="height: 250px;"><canvas id="userEngagementChart"></canvas></div>
+            <div class="card p-3 h-100">
+                <h6 class="fw-bold mb-3">{{ translate('network_participation') }}</h6>
+                <div class="chart-container" style="position: relative; height: 250px; width: 100%;">
+                    <canvas id="userEngagementChart"></canvas>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Detail Table -->
     <div class="card p-3 mb-4">
-        <h6 class="fw-bold mb-3 border-bottom border-white border-opacity-10 pb-2">Incident Intelligence Log</h6>
+        <h6 class="fw-bold mb-3 border-bottom border-white border-opacity-10 pb-2">{{
+            translate('incident_intelligence_log') }}</h6>
         <div class="table-responsive">
             <table class="table text-white table-hover small">
                 <thead class="text-white-50">
@@ -166,14 +553,115 @@
         </div>
         {% if reports|length > 10 %}
         <button class="btn btn-outline-info btn-sm mt-2"
-            onclick="document.querySelectorAll('.hidden-reports').forEach(r => r.classList.remove('hidden-reports')); this.remove()">Load
-            More</button>
+            onclick="document.querySelectorAll('.hidden-reports').forEach(r => r.classList.remove('hidden-reports')); this.remove()">{{
+            translate('load_more') }}</button>
         {% endif %}
     </div>
+
+    <!-- ============================================================
+         STEP 4: SEND DISTRICT WHATSAPP ALERT
+    ============================================================ -->
+    <div class="row g-3 mb-4">
+        <div class="col-12">
+            <div class="card p-3">
+                <h6 class="fw-bold mb-3">📲 Send District WhatsApp Alert</h6>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label text-white-50 small text-uppercase fw-bold">Districts</label>
+                        <select id="waDistrictSelect" class="form-select bg-dark text-white border-secondary" multiple size="6">
+                            <option value="Srikakulam">Srikakulam</option>
+                            <option value="Vizianagaram">Vizianagaram</option>
+                            <option value="Visakhapatnam">Visakhapatnam</option>
+                            <option value="East Godavari">East Godavari</option>
+                            <option value="West Godavari">West Godavari</option>
+                            <option value="Krishna">Krishna</option>
+                            <option value="Guntur">Guntur</option>
+                            <option value="Prakasam">Prakasam</option>
+                            <option value="Nellore">Nellore</option>
+                            <option value="Kurnool">Kurnool</option>
+                            <option value="Kadapa">Kadapa</option>
+                            <option value="Anantapur">Anantapur</option>
+                            <option value="Chittoor">Chittoor</option>
+                            <option value="YSR Kadapa">YSR Kadapa</option>
+                        </select>
+                        <small class="text-white-50">Hold Ctrl / Cmd to select multiple</small>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-white-50 small text-uppercase fw-bold">Alert Type</label>
+                        <select id="waAlertType" class="form-select bg-dark text-white border-secondary mb-3">
+                            <option value="Flood Warning">🌊 Flood Warning</option>
+                            <option value="Cyclone Alert">🌀 Cyclone Alert</option>
+                            <option value="Heavy Rainfall Advisory">🌧️ Heavy Rainfall Advisory</option>
+                            <option value="Reservoir Overflow">💧 Reservoir Overflow</option>
+                            <option value="General Advisory">📢 General Advisory</option>
+                        </select>
+                        <label class="form-label text-white-50 small text-uppercase fw-bold">Message</label>
+                        <textarea id="waMessage" class="form-control bg-dark text-white border-secondary" rows="4" placeholder="Enter alert message…"></textarea>
+                    </div>
+                    <div class="col-md-4 d-flex flex-column justify-content-between">
+                        <div class="card p-3" style="background:rgba(14,165,233,.07);border-color:rgba(14,165,233,.25) !important;">
+                            <small class="text-white-50 d-block mb-2">Message will be sent to all users with WhatsApp numbers whose home location falls within the selected district(s).</small>
+                            <small class="text-white-50 d-block">Only <strong class="text-info">Officials</strong> and <strong class="text-info">Analysts</strong> can send alerts.</small>
+                        </div>
+                        <button id="waSendBtn" class="btn btn-warning fw-bold mt-3" onclick="window.sendDistrictAlert()">
+                            🚨 Send WhatsApp Alert
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast container -->
+    <div class="toast-container-custom" id="toastContainer"></div>
+
+    <!-- Global Alert Modal -->
+    <div id="globalAlertModal" class="global-alert-modal">
+        <div class="global-alert-content">
+            <div class="global-alert-header">
+                <h2>🚨 {{ translate('send_global_alert') if translate('send_global_alert') != 'Send Global Alert' else
+                    'Send Global Alert' }}</h2>
+                <button class="close-btn" onclick="closeAlertModal()">&times;</button>
+            </div>
+
+            <div class="alert-stats">
+                <div class="alert-stat">
+                    <div class="alert-stat-value" id="totalLocations">0</div>
+                    <div class="alert-stat-label">{{ translate('total_affected_areas') if
+                        translate('total_affected_areas') != 'Total Affected Areas' else 'Total Affected Areas' }}</div>
+                </div>
+                <div class="alert-stat">
+                    <div class="alert-stat-value" id="selectedLocations">0</div>
+                    <div class="alert-stat-label">{{ translate('selected_areas') if translate('selected_areas') !=
+                        'Selected Areas' else 'Selected Areas' }}</div>
+                </div>
+            </div>
+
+            <div class="alert-select-all">
+                <label>
+                    <input type="checkbox" id="selectAllChk" onchange="toggleSelectAll()">
+                    {{ translate('select_all_locations') if translate('select_all_locations') != 'Select All Locations'
+                    else 'Select All Locations' }}
+                </label>
+            </div>
+
+            <div id="alertLocationsList" class="alert-locations-list">
+                <!-- Dynamically populated with locations -->
+            </div>
+
+            <div class="alert-actions">
+                <button class="btn-cancel-alert" onclick="closeAlertModal()">{{ translate('cancel') }}</button>
+                <button class="btn-send-alert" id="sendAlertBtn" onclick="sendSelectedAlert()" disabled>{{
+                    translate('send_alert') if translate('send_alert') != 'Send Alert' else 'Send Alert' }}</button>
+            </div>
+        </div>
+    </div>
+
 </div>
 {% endblock %}
 
 {% block scripts %}
+<!-- Load Plugins -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -181,117 +669,23 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <script>
-    // CRITICAL: Force no-space syntax for template variables
+    // Dashboard data from backend
     const DASHBOARD_DATA = {
         reports: {{ reports | tojson | safe }},
-    hazards: {{ hazard_counts | tojson | safe }},
-    timeline: {
-        labels: {{ timeline_labels | tojson | safe }},
-        data: {{ timeline_data | tojson | safe }}
-    },
-    users: {
-        total: {{ total_users }},
-        active: {{ active_users }}
-    }};
-
-    let hMap, wMap;
-
-    document.addEventListener('DOMContentLoaded', () => {
-        window.initCharts();
-        setTimeout(window.initMaps, 500);
-        document.getElementById('exportBtn').onclick = exportDashboard;
-    });
-
-    window.initMaps = function () {
-        if (!document.getElementById('heatmapMap')) return;
-
-        // Destroy existing if any
-        if (hMap) hMap.remove();
-        if (wMap) wMap.remove();
-
-        hMap = L.map('heatmapMap').setView([20.5, 78.9], 5);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap'
-        }).addTo(hMap);
-
-        if (DASHBOARD_DATA.reports && DASHBOARD_DATA.reports.length > 0) {
-            const pts = DASHBOARD_DATA.reports.map(r => [r.latitude, r.longitude, 1.0]);
-            L.heatLayer(pts, { radius: 35, blur: 15, maxOpacity: 0.8 }).addTo(hMap);
-            hMap.fitBounds(L.latLngBounds(pts.map(p => [p[0], p[1]])).pad(0.2));
+        hazards: {{ hazard_counts | tojson | safe }},
+        timeline: {
+            labels: {{ timeline_labels | tojson | safe }},
+            data: {{ timeline_data | tojson | safe }}
+        },
+        users: {
+            total: {{ total_users }},
+            active: {{ active_users }}
         }
-
-        wMap = L.map('warningMap').setView([20.5, 78.9], 5);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap'
-        }).addTo(wMap);
-
-        fetch('/api/weather_warnings')
-            .then(r => r.json())
-            .then(data => {
-                if (data && data.length > 0) {
-                    const circles = data.map(w => L.circle([w.latitude, w.longitude], {
-                        radius: w.radius * 1000,
-                        color: w.severity === 'high' ? '#ef4444' : '#f59e0b',
-                        fillOpacity: 0.2
-                    }).bindPopup(`<b>${w.type} Alert</b>`));
-                    const group = L.featureGroup(circles).addTo(wMap);
-                    wMap.fitBounds(group.getBounds().pad(0.2));
-                }});
-
-        setTimeout(() => {
-            hMap.invalidateSize();
-            wMap.invalidateSize();
-        }, 300);
     };
 
-    window.initCharts = function () {
-        const cfg = (type, labels, data, colors) => ({
-            type: type,
-            data: {
-                labels: labels,
-                datasets: [{
-                    data: data,
-                    backgroundColor: colors,
-                    borderColor: 'rgba(255,255,255,0.1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { position: 'bottom', labels: { color: '#fff', font: { size: 10 }} }},
-                scales: type === 'line' || type === 'bar' ? {
-                    x: { ticks: { color: '#fff' }, grid: { display: false }},
-                    y: { ticks: { color: '#fff' }, grid: { color: 'rgba(255,255,255,0.05)' }}
-                } : {}}
-        });
-
-        if (document.getElementById('hazardDistributionChart')) {
-            new Chart(document.getElementById('hazardDistributionChart'), cfg('pie',
-                Object.keys(DASHBOARD_DATA.hazards),
-                Object.values(DASHBOARD_DATA.hazards),
-                ['#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
-            ));
-        }
-
-        if (document.getElementById('reportsTimelineChart')) {
-            const chart = new Chart(document.getElementById('reportsTimelineChart'), cfg('line',
-                DASHBOARD_DATA.timeline.labels,
-                DASHBOARD_DATA.timeline.data,
-                'rgba(14, 165, 233, 0.2)'
-            ));
-            chart.data.datasets[0].borderColor = '#0ea5e9';
-            chart.data.datasets[0].fill = true;
-            chart.update();
-        }
-
-        if (document.getElementById('userEngagementChart')) {
-            new Chart(document.getElementById('userEngagementChart'), cfg('bar',
-                ['Total Users', 'Active Users'],
-                [DASHBOARD_DATA.users.total, DASHBOARD_DATA.users.active],
-                ['#0ea5e9', '#10b981']
-            ));
-        }};
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('exportBtn').onclick = exportDashboard;
+    });
 
     function exportDashboard() {
         html2canvas(document.getElementById('dashboardContent'), { scale: 1 }).then(canvas => {
@@ -302,8 +696,173 @@
     }
 
     function sendTestWarning() {
-        if (confirm('Broadcast alert to all users?')) {
-            fetch('/send_test_warning', { method: 'POST' }).then(r => r.json()).then(d => alert(d.message));
-        }}
+        Promise.all([
+            fetch('/api/live_hazard_incidents').then(r => r.json()),
+            fetch('/api/live_govt_hazards').then(r => r.json())
+        ]).then(([incidents, hazards]) => {
+            const allAffectedAreas = [];
+
+            if (incidents.incidents && incidents.incidents.length > 0) {
+                incidents.incidents.forEach(incident => {
+                    allAffectedAreas.push({
+                        id: `incident_${incident.id}`,
+                        name: incident.title || incident.hazard_type,
+                        type: 'Incident',
+                        hazard_type: incident.hazard_type,
+                        latitude: incident.latitude,
+                        longitude: incident.longitude,
+                        author: incident.author,
+                        priority: incident.priority,
+                        description: incident.description || 'No description provided',
+                        icon: '🔴'
+                    });
+                });
+            }
+
+            if (hazards.hazards && hazards.hazards.length > 0) {
+                hazards.hazards.forEach(hazard => {
+                    allAffectedAreas.push({
+                        id: `hazard_${hazard.id}`,
+                        name: hazard.type,
+                        type: 'Govt Alert',
+                        severity: hazard.severity,
+                        latitude: hazard.latitude,
+                        longitude: hazard.longitude,
+                        source: hazard.source,
+                        radius: hazard.radius,
+                        icon: hazard.severity === 'critical' ? '🔴' : hazard.severity === 'high' ? '🟠' : '🟡'
+                    });
+                });
+            }
+
+            populateAlertLocations(allAffectedAreas);
+            document.getElementById('globalAlertModal').style.display = 'flex';
+        });
+    }
+
+    function populateAlertLocations(locations) {
+        const listContainer = document.getElementById('alertLocationsList');
+        const totalLocationsEl = document.getElementById('totalLocations');
+        const selectedLocationsEl = document.getElementById('selectedLocations');
+
+        window.availableLocations = locations;
+        window.selectedLocationIds = new Set();
+
+        totalLocationsEl.textContent = locations.length;
+        selectedLocationsEl.textContent = '0';
+
+        listContainer.innerHTML = '';
+
+        locations.forEach((location, index) => {
+            const item = document.createElement('div');
+            item.className = 'alert-location-item';
+            item.innerHTML = `
+                <div class="alert-location-checkbox">
+                    <input type="checkbox" id="loc_${location.id}" 
+                           onchange="updateLocationSelection(this, '${location.id}')">
+                </div>
+                <div class="alert-location-info">
+                    <div class="alert-location-name">
+                        <span class="alert-location-icon">${location.icon}</span>
+                        <strong>${location.name}</strong>
+                        <span class="badge bg-secondary">${location.type}</span>
+                    </div>
+                    <div class="alert-location-details">
+                        <small>📍 ${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)}</small>
+                        ${location.hazard_type ? `<small> • 🏷️ ${location.hazard_type.replace(/_/g, ' ')}</small>` : ''}
+                        ${location.severity ? `<small> • 🎯 ${location.severity.toUpperCase()}</small>` : ''}
+                        ${location.radius ? `<small> • 📏 ${location.radius}km</small>` : ''}
+                    </div>
+                </div>
+            `;
+            listContainer.appendChild(item);
+        });
+    }
+
+    function updateLocationSelection(checkbox, locationId) {
+        const selectedLocationsEl = document.getElementById('selectedLocations');
+        const sendBtn = document.getElementById('sendAlertBtn');
+
+        if (checkbox.checked) {
+            window.selectedLocationIds.add(locationId);
+        } else {
+            window.selectedLocationIds.delete(locationId);
+        }
+
+        selectedLocationsEl.textContent = window.selectedLocationIds.size;
+        sendBtn.disabled = window.selectedLocationIds.size === 0;
+    }
+
+    function toggleSelectAll() {
+        const checkboxes = document.querySelectorAll('#alertLocationsList input[type="checkbox"]');
+        const selectAllChk = document.getElementById('selectAllChk');
+        const selectedLocationsEl = document.getElementById('selectedLocations');
+        const sendBtn = document.getElementById('sendAlertBtn');
+
+        window.selectedLocationIds.clear();
+
+        checkboxes.forEach(chk => {
+            chk.checked = selectAllChk.checked;
+            if (selectAllChk.checked && window.availableLocations) {
+                const locationId = chk.id.replace('loc_', '');
+                window.selectedLocationIds.add(locationId);
+            }
+        });
+
+        selectedLocationsEl.textContent = window.selectedLocationIds.size;
+        sendBtn.disabled = window.selectedLocationIds.size === 0;
+    }
+
+    function closeAlertModal() {
+        document.getElementById('globalAlertModal').style.display = 'none';
+        document.getElementById('selectAllChk').checked = false;
+        window.selectedLocationIds.clear();
+    }
+
+    function sendSelectedAlert() {
+        if (window.selectedLocationIds.size === 0) {
+            alert('Please select at least one location');
+            return;
+        }
+
+        const affectedLocations = Array.from(window.selectedLocationIds)
+            .map(id => window.availableLocations.find(loc => loc.id === id))
+            .filter(loc => loc)
+            .map(loc => ({
+                latitude: loc.latitude,
+                longitude: loc.longitude,
+                name: loc.name,
+                type: loc.type,
+                hazard_type: loc.hazard_type || loc.type,
+                severity: loc.severity || loc.priority || 'medium',
+                radius: loc.radius || 5,
+                description: loc.description || 'No description available'
+            }));
+
+        const hazardTypes = [...new Set(affectedLocations.map(l => l.hazard_type))];
+        const detailedMessage = `URGENT: ${hazardTypes.join(', ')} alert for ${affectedLocations.length} affected area(s)`;
+
+        fetch('/send_global_alert', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                affected_locations: affectedLocations,
+                message: detailedMessage
+            })
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    alert(`✅ Global Alert Sent!\n• Affected Areas: ${data.locations_count}\n• Users Alerted: ${data.users_alerted}`);
+                    closeAlertModal();
+                } else {
+                    alert(`❌ Error: ${data.error}`);
+                }
+            })
+            .catch(err => alert(`Error: ${err.message}`));
+    }
 </script>
+
+<!-- Our custom Analyst Dashboard logic -->
+<script src="{{ url_for('static', filename='js/analyst_dashboard.js') }}?v=1.1.0"></script>
 {% endblock %}

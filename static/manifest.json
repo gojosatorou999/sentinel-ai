@@ -1,6 +1,6 @@
 {
-  "name": "CoastalAlert - Disaster Management",
-  "short_name": "CoastalAlert",
+  "name": "Sentinel AI - Disaster Management",
+  "short_name": "Sentinel AI",
   "description": "AI-Powered Emergency Response & Incident Management System",
   "start_url": "/",
   "display": "standalone",
@@ -64,16 +64,30 @@
       "short_name": "Report",
       "description": "Quickly report an emergency",
       "url": "/report",
-      "icons": [{ "src": "/static/icons/icon-192x192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/static/icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
     },
     {
       "name": "View Dashboard",
       "short_name": "Dashboard",
       "description": "View your dashboard",
       "url": "/dashboard",
-      "icons": [{ "src": "/static/icons/icon-192x192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/static/icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ],
-  "categories": ["emergency", "safety", "utilities"],
+  "categories": [
+    "emergency",
+    "safety",
+    "utilities"
+  ],
   "screenshots": []
 }

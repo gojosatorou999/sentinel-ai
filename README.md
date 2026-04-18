@@ -19,7 +19,7 @@
 
 ---
 
-## 🎯 Problem Statement: SH-SVA-03
+## 🎯 Problem:
 
 > **Urban infrastructure management is fragmented across departments, leading to delayed incident detection, inefficient response, and increased operational costs. A multi-agent AI system integrated with a city digital twin is needed to autonomously prioritize incidents, coordinate actions, and ensure timely, compliant resolution.**
 
@@ -183,7 +183,7 @@ The following is the end-to-end operational flow of Sentinel AI, from incident d
 │            PHASE 6: COMMUNITY VOLUNTEERING & RESILIENCE BUILDING            │
 │                                                                             │
 │  ┌─────────────────────────────────────────────────────────────────┐       │
-│  │  🌿 Shonha's Community Hub                                      │       │
+│  │  🌿 Rishanth's Community Hub                                      │       │
 │  │                                                                   │       │
 │  │  Anyone can be a volunteer and help people:                       │       │
 │  │  • Vacate & evacuate during disasters                             │       │

@@ -28,12 +28,13 @@ if os.path.exists(CSV_FILE):
         reader = csv.DictReader(f)
         for row in reader:
             report = {
-                'timestamp': row['Timestamp'],
-                'phone': row['Phone'],
-                'type': row['Hazard Type'],
-                'location': row['Location'],
-                'severity': row['Severity'],
-                'desc': row['Description']
+                'timestamp': row.get('Timestamp', ''),
+                'phone': row.get('Phone', ''),
+                'type': row.get('Hazard Type', ''),
+                'location': row.get('Location', ''),
+                'severity': row.get('Severity', ''),
+                'desc': row.get('Description', ''),
+                'conversation_log': ''
             }
             all_reports.insert(0, report)
 else:

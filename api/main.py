@@ -221,7 +221,7 @@ def select_language():
     # language='en-IN' on Gather sets the STT engine for recognition.
     # hints improve accuracy for these specific words.
     gather = Gather(input='speech', action='/voice/handle_language', timeout=6,
-                    speech_timeout='auto', language='en-IN',
+                    speechTimeout='auto', language='en-IN',
                     hints='English,Telugu,Hindi')
     gather.say("For English, say English.", language='en-IN')
     gather.say("Telugu lo matladali ante, Telugu anandi.", language='en-IN')
@@ -276,7 +276,7 @@ def welcome():
     call_sid = request.values.get('CallSid')
     lc = get_lang_code(call_sid)
 
-    gather = Gather(input='speech', action='/voice/handle_welcome', timeout=3, speech_timeout='auto', language=lc)
+    gather = Gather(input='speech', action='/voice/handle_welcome', timeout=3, speechTimeout='auto', language=lc)
     gather.say(get_prompt(call_sid, 'welcome'), language=lc)
     resp.append(gather)
 
@@ -309,7 +309,7 @@ def ask_hazard_type():
     call_sid = request.values.get('CallSid')
     lc = get_lang_code(call_sid)
 
-    gather = Gather(input='speech', action='/voice/handle_hazard_type', timeout=3, speech_timeout='auto', language=lc)
+    gather = Gather(input='speech', action='/voice/handle_hazard_type', timeout=3, speechTimeout='auto', language=lc)
     gather.say(get_prompt(call_sid, 'ask_type'), language=lc)
     resp.append(gather)
 
@@ -357,7 +357,7 @@ def ask_field(field):
     lc = get_lang_code(call_sid)
     cfg = FIELD_CONFIG.get(field, FIELD_CONFIG['description'])
 
-    gather = Gather(input='speech', action=f'/voice/handle_field/{field}', timeout=3, speech_timeout='auto', language=lc)
+    gather = Gather(input='speech', action=f'/voice/handle_field/{field}', timeout=3, speechTimeout='auto', language=lc)
     gather.say(get_prompt(call_sid, cfg['ask_key']), language=lc)
     resp.append(gather)
 
@@ -392,7 +392,7 @@ def confirm_report():
     )
 
     resp = VoiceResponse()
-    gather = Gather(input='speech', action='/voice/process_confirmation', timeout=3, speech_timeout='auto', language=lc)
+    gather = Gather(input='speech', action='/voice/process_confirmation', timeout=3, speechTimeout='auto', language=lc)
     gather.say(summary, language=lc)
     resp.append(gather)
 

@@ -217,11 +217,15 @@ def download_reports():
 @app.route('/voice/select_language', methods=['GET', 'POST'])
 def select_language():
     resp = VoiceResponse()
-    # Barge-in enabled: <Say> inside <Gather> allows caller to interrupt at any time
-    gather = Gather(input='speech', action='/voice/handle_language', timeout=5, speech_timeout='auto')
-    gather.say("For English, please say English.", language='en-IN')
-    gather.say("తెలుగు కోసం, తెలుగు అనండి.", language='te-IN')
-    gather.say("हिंदी के लिए, हिंदी बोलिए।", language='hi-IN')
+    # Use en-IN TTS for all prompts (te-IN not supported by basic Twilio TTS).
+    # language='en-IN' on Gather sets the STT engine for recognition.
+    # hints improve accuracy for these specific words.
+    gather = Gather(input='speech', action='/voice/handle_language', timeout=6,
+                    speech_timeout='auto', language='en-IN',
+                    hints='English,Telugu,Hindi')
+    gather.say("For English, say English.", language='en-IN')
+    gather.say("Telugu lo matladali ante, Telugu anandi.", language='en-IN')
+    gather.say("Hindi ke liye, Hindi boliye.", language='en-IN')
     resp.append(gather)
     resp.redirect('/voice/select_language')
     return str(resp)
@@ -272,7 +276,7 @@ def welcome():
     call_sid = request.values.get('CallSid')
     lc = get_lang_code(call_sid)
 
-    gather = Gather(input='speech', action='/voice/handle_welcome', timeout=3, speech_timeout='auto')
+    gather = Gather(input='speech', action='/voice/handle_welcome', timeout=3, speech_timeout='auto', language=lc)
     gather.say(get_prompt(call_sid, 'welcome'), language=lc)
     resp.append(gather)
 
@@ -305,7 +309,7 @@ def ask_hazard_type():
     call_sid = request.values.get('CallSid')
     lc = get_lang_code(call_sid)
 
-    gather = Gather(input='speech', action='/voice/handle_hazard_type', timeout=3, speech_timeout='auto')
+    gather = Gather(input='speech', action='/voice/handle_hazard_type', timeout=3, speech_timeout='auto', language=lc)
     gather.say(get_prompt(call_sid, 'ask_type'), language=lc)
     resp.append(gather)
 
@@ -353,7 +357,7 @@ def ask_field(field):
     lc = get_lang_code(call_sid)
     cfg = FIELD_CONFIG.get(field, FIELD_CONFIG['description'])
 
-    gather = Gather(input='speech', action=f'/voice/handle_field/{field}', timeout=3, speech_timeout='auto')
+    gather = Gather(input='speech', action=f'/voice/handle_field/{field}', timeout=3, speech_timeout='auto', language=lc)
     gather.say(get_prompt(call_sid, cfg['ask_key']), language=lc)
     resp.append(gather)
 
@@ -388,7 +392,7 @@ def confirm_report():
     )
 
     resp = VoiceResponse()
-    gather = Gather(input='speech', action='/voice/process_confirmation', timeout=3, speech_timeout='auto')
+    gather = Gather(input='speech', action='/voice/process_confirmation', timeout=3, speech_timeout='auto', language=lc)
     gather.say(summary, language=lc)
     resp.append(gather)
 

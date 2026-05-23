@@ -134,16 +134,22 @@ def get_timestamp():
     ist = pytz.timezone('Asia/Kolkata')
     return datetime.now(ist).strftime('%Y-%m-%d %H:%M:%S %Z')
 
+def clean_speech(val):
+    """Strip newlines, extra spaces and control characters from speech results."""
+    if not val:
+        return 'N/A'
+    return ' '.join(str(val).replace('\r', ' ').replace('\n', ' ').split())
+
 def save_report_to_csv(data):
     with open(CSV_FILE, 'a', newline='') as f:
         writer = csv.writer(f)
         writer.writerow([
-            data['timestamp'],
-            data['phone'],
-            data.get('type', 'N/A'),
-            data.get('location', 'N/A'),
-            data.get('severity', 'N/A'),
-            data.get('desc', 'N/A')
+            clean_speech(data.get('timestamp', '')),
+            clean_speech(data.get('phone', '')),
+            clean_speech(data.get('type', 'N/A')),
+            clean_speech(data.get('location', 'N/A')),
+            clean_speech(data.get('severity', 'N/A')),
+            clean_speech(data.get('desc', 'N/A'))
         ])
 
 def log_conversation(call_sid, actor, message):

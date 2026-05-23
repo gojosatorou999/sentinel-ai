@@ -44,10 +44,20 @@ else:
 
 # --- LANGUAGE CONFIG ---
 
-LANG_CODE = {
+# STT language code — tells Twilio which language to listen for
+LANG_CODE_STT = {
     'en': 'en-IN',
     'hi': 'hi-IN',
-    'te': 'te-IN'
+    'te': 'en-IN'   # te-IN STT unreliable; en-IN picks up phonetic Telugu words
+}
+
+# TTS language code — tells Twilio which voice engine to use for <Say>
+# te-IN TTS is NOT supported by basic Twilio, so Telugu uses en-IN voice
+# with phonetic Roman transliterations in the prompts below
+LANG_CODE_TTS = {
+    'en': 'en-IN',
+    'hi': 'hi-IN',
+    'te': 'en-IN'
 }
 
 # All prompts in English, Hindi (Devanagari), Telugu (Telugu script)
@@ -89,22 +99,23 @@ PROMPTS = {
         'no_input_lang': "कृपया English, Telugu, या Hindi कहें।"
     },
     'te': {
-        'welcome': "మీరు ప్రమాదాన్ని నివేదించడానికి కాల్ చేస్తున్నారా? దయచేసి అవును లేదా కాదు అని చెప్పండి.",
-        'no_input_welcome': "మీరు చెప్పింది వినలేదు. ప్రమాదాన్ని నివేదించడానికి అవును అనండి, లేదా బయటకు వెళ్ళడానికి కాదు అనండి.",
-        'not_reporting': "సంప్రదించినందుకు ధన్యవాదాలు. వీడ్కోలు.",
-        'unclear': "దయచేసి నివేదించడానికి అవును అనండి, లేదా బయటకు వెళ్ళడానికి కాదు అనండి.",
-        'ask_type': "ఇది ఏ రకమైన ప్రమాదం? మీరు తుఫాను, బురద, అసాధారణ అలలు, లేదా ఇతర అని చెప్పవచ్చు.",
-        'no_input_type': "దయచేసి తుఫాను, బురద, అసాధారణ అలలు, లేదా ఇతర అని చెప్పండి.",
-        'ask_description': "దయచేసి ప్రమాదాన్ని క్లుప్తంగా వివరించండి. ఏం జరుగుతోంది?",
-        'no_input_description': "దయచేసి ప్రమాదాన్ని వివరించండి.",
-        'ask_location': "ఇది ఎక్కడ ఉంది? ఉదాహరణకు, విజాగ్ బీచ్ లేదా చార్మినార్.",
-        'no_input_location': "దయచేసి ప్రమాదం జరిగిన స్థలాన్ని చెప్పండి.",
-        'ask_severity': "ఇది ఎంత తీవ్రంగా ఉంది? అత్యంత తీవ్రమైనది, మధ్యస్థం, లేదా తేలికపాటి అని చెప్పండి.",
-        'no_input_severity': "దయచేసి అత్యంత తీవ్రమైనది, మధ్యస్థం, లేదా తేలికపాటి అని చెప్పండి.",
-        'confirm': "నివేదిక సారాంశం: {location} లో {hazard_type}, తీవ్రత {severity}. సమర్పించడానికి అవును అనండి, లేదా మళ్ళీ ప్రారంభించడానికి కాదు అనండి.",
-        'submitted': "మీ నివేదిక సమర్పించబడింది. సురక్షితంగా ఉండండి.",
-        'start_over': "మళ్ళీ మొదటి నుండి ప్రయత్నిద్దాం.",
-        'no_input_lang': "దయచేసి English, Telugu, లేదా Hindi అనండి."
+        # Phonetic Roman transliterations — spoken by en-IN voice, understandable to Telugu speakers
+        'welcome': "Meeru pramaadam nivedimchataniki call chestunaara? Dayachesi avunu, leda kaadu ani cheppandi.",
+        'no_input_welcome': "Meeru cheppindi vinaleda. Pramaadam nivedimchataniki avunu anandi, leda baytaku vellataniki kaadu anandi.",
+        'not_reporting': "Sampraadinchinavadaku dhanyavaadaalu. Veedkolu.",
+        'unclear': "Dayachesi nivedimchataniki avunu anandi, leda baytaku vellataniki kaadu anandi.",
+        'ask_type': "Idi eee rakamaina pramaadam? Meeru toofaanu, burrada, asaadhaarana alalu, leda itetar ani cheppavacchu.",
+        'no_input_type': "Dayachesi toofaanu, burrada, asaadhaarana alalu, leda itetar ani cheppandi.",
+        'ask_description': "Dayachesi pramaadam gurinchi cheppandi. Eemi jarugutundi?",
+        'no_input_description': "Dayachesi pramaadam vivariṇchandi.",
+        'ask_location': "Idi ekaDA undi? Udaaharanaku, Vizaag Beach leda Charminar.",
+        'no_input_location': "Dayachesi pramaadam jarigina sthalanni cheppandi.",
+        'ask_severity': "Idi entha teevramgaa undi? Atyanta teevrammainadi, madhyamam, leda telikadaati ani cheppandi.",
+        'no_input_severity': "Dayachesi Atyanta teevrammainadi, Madhyamam, leda Telikadaati ani cheppandi.",
+        'confirm': "Report saaraamsham: {location} lo {hazard_type}, teevrata {severity}. Samarpimchataniki avunu anandi, leda malli prarambhimchataniki kaadu anandi.",
+        'submitted': "Mee nivedika samarpimchabadindi. Suraксhitamgaa undandi.",
+        'start_over': "Malli modalinundi prayas cheddaam.",
+        'no_input_lang': "Dayachesi English, Telugu, leda Hindi ani cheppandi."
     }
 }
 
@@ -128,8 +139,11 @@ def get_prompt(call_sid, key, **kwargs):
         prompt = prompt.format(**kwargs)
     return prompt
 
-def get_lang_code(call_sid):
-    return LANG_CODE[get_lang(call_sid)]
+def get_stt_lc(call_sid):
+    return LANG_CODE_STT[get_lang(call_sid)]
+
+def get_tts_lc(call_sid):
+    return LANG_CODE_TTS[get_lang(call_sid)]
 
 def get_timestamp():
     ist = pytz.timezone('Asia/Kolkata')
@@ -281,13 +295,14 @@ def handle_language():
 def welcome():
     resp = VoiceResponse()
     call_sid = request.values.get('CallSid')
-    lc = get_lang_code(call_sid)
+    stt_lc = get_stt_lc(call_sid)
+    tts_lc = get_tts_lc(call_sid)
 
-    gather = Gather(input='speech', action='/voice/handle_welcome', timeout=3, speechTimeout='auto', language=lc)
-    gather.say(get_prompt(call_sid, 'welcome'), language=lc)
+    gather = Gather(input='speech', action='/voice/handle_welcome', timeout=3, speechTimeout='auto', language=stt_lc)
+    gather.say(get_prompt(call_sid, 'welcome'), language=tts_lc)
     resp.append(gather)
 
-    resp.say(get_prompt(call_sid, 'no_input_welcome'), language=lc)
+    resp.say(get_prompt(call_sid, 'no_input_welcome'), language=tts_lc)
     resp.redirect('/voice/welcome')
     log_conversation(call_sid, "Bot", "Asked if reporting a hazard")
     return str(resp)
@@ -297,16 +312,16 @@ def handle_welcome():
     call_sid = request.values.get('CallSid')
     speech = request.values.get('SpeechResult', '').lower()
     log_conversation(call_sid, "User", speech)
-    lc = get_lang_code(call_sid)
+    tts_lc = get_tts_lc(call_sid)
 
     resp = VoiceResponse()
     if any(w in speech for w in YES_WORDS):
         resp.redirect('/voice/ask_hazard_type')
     elif any(w in speech for w in NO_WORDS):
-        resp.say(get_prompt(call_sid, 'not_reporting'), language=lc)
+        resp.say(get_prompt(call_sid, 'not_reporting'), language=tts_lc)
         resp.hangup()
     else:
-        resp.say(get_prompt(call_sid, 'unclear'), language=lc)
+        resp.say(get_prompt(call_sid, 'unclear'), language=tts_lc)
         resp.redirect('/voice/welcome')
     return str(resp)
 
@@ -314,13 +329,14 @@ def handle_welcome():
 def ask_hazard_type():
     resp = VoiceResponse()
     call_sid = request.values.get('CallSid')
-    lc = get_lang_code(call_sid)
+    stt_lc = get_stt_lc(call_sid)
+    tts_lc = get_tts_lc(call_sid)
 
-    gather = Gather(input='speech', action='/voice/handle_hazard_type', timeout=3, speechTimeout='auto', language=lc)
-    gather.say(get_prompt(call_sid, 'ask_type'), language=lc)
+    gather = Gather(input='speech', action='/voice/handle_hazard_type', timeout=3, speechTimeout='auto', language=stt_lc)
+    gather.say(get_prompt(call_sid, 'ask_type'), language=tts_lc)
     resp.append(gather)
 
-    resp.say(get_prompt(call_sid, 'no_input_type'), language=lc)
+    resp.say(get_prompt(call_sid, 'no_input_type'), language=tts_lc)
     resp.redirect('/voice/ask_hazard_type')
     return str(resp)
 
@@ -361,14 +377,15 @@ FIELD_CONFIG = {
 def ask_field(field):
     resp = VoiceResponse()
     call_sid = request.values.get('CallSid')
-    lc = get_lang_code(call_sid)
+    stt_lc = get_stt_lc(call_sid)
+    tts_lc = get_tts_lc(call_sid)
     cfg = FIELD_CONFIG.get(field, FIELD_CONFIG['description'])
 
-    gather = Gather(input='speech', action=f'/voice/handle_field/{field}', timeout=3, speechTimeout='auto', language=lc)
-    gather.say(get_prompt(call_sid, cfg['ask_key']), language=lc)
+    gather = Gather(input='speech', action=f'/voice/handle_field/{field}', timeout=3, speechTimeout='auto', language=stt_lc)
+    gather.say(get_prompt(call_sid, cfg['ask_key']), language=tts_lc)
     resp.append(gather)
 
-    resp.say(get_prompt(call_sid, cfg['no_input_key']), language=lc)
+    resp.say(get_prompt(call_sid, cfg['no_input_key']), language=tts_lc)
     resp.redirect(f'/voice/ask_field/{field}')
     return str(resp)
 
@@ -390,7 +407,8 @@ def handle_field(field):
 def confirm_report():
     call_sid = request.values.get('CallSid')
     data = call_data.get(call_sid, {})
-    lc = get_lang_code(call_sid)
+    stt_lc = get_stt_lc(call_sid)
+    tts_lc = get_tts_lc(call_sid)
 
     summary = get_prompt(call_sid, 'confirm',
         hazard_type=data.get('type', ''),
@@ -399,8 +417,8 @@ def confirm_report():
     )
 
     resp = VoiceResponse()
-    gather = Gather(input='speech', action='/voice/process_confirmation', timeout=3, speechTimeout='auto', language=lc)
-    gather.say(summary, language=lc)
+    gather = Gather(input='speech', action='/voice/process_confirmation', timeout=3, speechTimeout='auto', language=stt_lc)
+    gather.say(summary, language=tts_lc)
     resp.append(gather)
 
     log_conversation(call_sid, "Bot", "Confirming report")
@@ -411,11 +429,11 @@ def confirm_report():
 def process_confirmation():
     call_sid = request.values.get('CallSid')
     speech = request.values.get('SpeechResult', '').lower()
-    lc = get_lang_code(call_sid)
+    tts_lc = get_tts_lc(call_sid)
     resp = VoiceResponse()
 
     if any(w in speech for w in YES_WORDS):
-        resp.say(get_prompt(call_sid, 'submitted'), language=lc)
+        resp.say(get_prompt(call_sid, 'submitted'), language=tts_lc)
         resp.hangup()
 
         if call_sid in call_data:
@@ -426,7 +444,7 @@ def process_confirmation():
             all_reports.insert(0, final_data)
             del call_data[call_sid]
     else:
-        resp.say(get_prompt(call_sid, 'start_over'), language=lc)
+        resp.say(get_prompt(call_sid, 'start_over'), language=tts_lc)
         resp.redirect('/voice/welcome')
 
     return str(resp)

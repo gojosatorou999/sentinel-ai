@@ -223,7 +223,6 @@ def select_language():
     gather.say("తెలుగు కోసం, తెలుగు అనండి.", language='te-IN')
     gather.say("हिंदी के लिए, हिंदी बोलिए।", language='hi-IN')
     resp.append(gather)
-    resp.say("Please say English, Telugu, or Hindi.", language='en-IN')
     resp.redirect('/voice/select_language')
     return str(resp)
 

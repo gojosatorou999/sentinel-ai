@@ -15,7 +15,7 @@
  
 [Problem Statement](#-problem-statement-sh-sva-03) • [Solution](#-sentinel-ai-the-solution) • [App Flow](#-complete-application-flow) • [Features](#-feature-deep-dive) • [Architecture](#-system-architecture) • [Getting Started](#-getting-started) • [API Reference](#-api-reference) • [WhatsApp Bot](#-whatsapp-bot) • [Database Schema](#-database-)
 </div> 
-
+ 
 -------
 
 ## 🎯 Problem:

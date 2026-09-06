@@ -9,7 +9,7 @@
 [![Leaflet](https://img.shields.io/badge/Leaflet.js-Maps-199900?style=for-the-badge&logo=leaflet&logoColor=white)](https://leafletjs.com)
 [![PWA](https://img.shields.io/badge/PWA-Installable-5A0FC8?style=for-the-badge&logo=pwa&logoColor=white)](https://web.dev/progressive-web-apps/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
-   
+    
 **An enterprise-grade, AI-powered multi-agent disaster response & urban infrastructure management platform.**  
 *Addressing Problem Statement SH-SVA-03: Unifying fragmented urban departments through autonomous incident detection, coordinated multi-agent response, and real-time city-wide digital twin intelligence.* 
  
